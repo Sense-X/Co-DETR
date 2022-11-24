@@ -1,6 +1,9 @@
 # DETRs with Collaborative Hybrid Assignments Training
 
-This repo is the official implementation of "DETRs with Collaborative Hybrid Assignments Training" by Zhuofan Zong, Guanglu Song, and Yu Liu.
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/detrs-with-collaborative-hybrid-assignments/object-detection-on-coco-minival)](https://paperswithcode.com/sota/object-detection-on-coco-minival?p=detrs-with-collaborative-hybrid-assignments)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/detrs-with-collaborative-hybrid-assignments/object-detection-on-coco)](https://paperswithcode.com/sota/object-detection-on-coco?p=detrs-with-collaborative-hybrid-assignments)
+
+This repo is the official implementation of ["DETRs with Collaborative Hybrid Assignments Training"](https://arxiv.org/pdf/2211.12860.pdf) by Zhuofan Zong, Guanglu Song, and Yu Liu.
 
 
 ## News
@@ -10,8 +13,7 @@ This repo is the official implementation of "DETRs with Collaborative Hybrid Ass
 
 ## Introduction
 
-In this paper,
-we present a novel collaborative hybrid assignments training scheme, namely Co-DETR, to learn more efficient and effective DETR-based detectors from versatile label assignment manners. This new training scheme can easily enhance the encoder's learning ability in end-to-end detectors by training the multiple parallel auxiliary heads supervised by one-to-many label assignments. In addition, we conduct extra customized positive queries by extracting the positive coordinates from these auxiliary heads to improve the training efficiency of positive samples in decoder. Extensive experiments on MS COCO dataset demonstrate the efficiency and effectiveness of our Co-DETR. Surprisingly, incorporated with the large-scale backbone MixMIM-g with 1-Billion parameters, we achieve the 64.5\% AP on MS COCO test dev, achieving superior performance with much fewer extra data sizes.
+In this paper, we present a novel collaborative hybrid assignments training scheme, namely Co-DETR, to learn more efficient and effective DETR-based detectors from versatile label assignment manners. This new training scheme can easily enhance the encoder's learning ability in end-to-end detectors by training the multiple parallel auxiliary heads supervised by one-to-many label assignments. In addition, we conduct extra customized positive queries by extracting the positive coordinates from these auxiliary heads to improve the training efficiency of positive samples in decoder. Extensive experiments on MS COCO dataset demonstrate the efficiency and effectiveness of our Co-DETR. Surprisingly, incorporated with the large-scale backbone MixMIM-g with 1-Billion parameters, we achieve the 64.5\% AP on MS COCO test dev, achieving superior performance with much fewer extra data sizes.
 
 ![teaser](figures/framework.png)
 
@@ -58,7 +60,20 @@ For Deformable-DETR++, we follow the settings in [H-DETR](https://github.com/HDE
 | Co-Deformable-DETR | Swin-L | 36 | 900 | 58.1 | 58.3 |
 | Co-Deformable-DETR (top 300) | Swin-L | 36 | 900 | 58.3 | 58.5 |
 
+##  Cite Co-DETR
 
+If you find this repository useful, please use the following BibTeX entry for citation.
+
+```latex
+@misc{codetr2022,
+      title={DETRs with Collaborative Hybrid Assignments Training},
+      author={Zhuofan Zong and Guanglu Song and Yu Liu},
+      year={2022},
+      eprint={2211.12860},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 ## License
 
