@@ -312,6 +312,3 @@ optimizer_config = dict(grad_clip=dict(max_norm=0.1, norm_type=2))
 # learning policy
 lr_config = dict(policy='step', step=[11])
 runner = dict(type='EpochBasedRunner', max_epochs=12)
-
-checkpoint_config = dict(interval=5)
-resume_from = 'work_dirs/co_deformable_detr_k2_r50_1x_coco/epoch_10.pth'

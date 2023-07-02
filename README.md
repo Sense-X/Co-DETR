@@ -8,7 +8,7 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 
 ## News
 
-* [07/03/2023] Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of **65.6 mAP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**.
+* [07/03/2023] Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of **65.6 AP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**.
 * [07/03/2023] Code for Co-Deformable-DETR is released.
 * [11/19/2022] We achieved 64.4 AP on COCO minival and 64.5 AP on COCO test-dev with only ImageNet-1K as pre-training data. Codes will be available soon.
    
@@ -19,7 +19,7 @@ In this paper, we present a novel collaborative hybrid assignments training sche
 1. **Encoder optimization**: The proposed training scheme can easily enhance the encoder's learning ability in end-to-end detectors by training multiple parallel auxiliary heads supervised by one-to-many label assignments. 
 2. **Decoder optimization**: We conduct extra customized positive queries by extracting the positive coordinates from these auxiliary heads to improve attention learning of the decoder. 
 3. **State-of-the-art performance**: Incorporated with the ViT-L backbone (304M parameters),
-we achieve the 65.6\% mAP on MS COCO test-dev, outperforming previous methods with much fewer model sizes.
+we achieve the 65.6\% AP on MS COCO test-dev, outperforming previous methods with much fewer model sizes.
 
 ![teaser](figures/framework.png)
 
