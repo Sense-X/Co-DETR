@@ -8,59 +8,88 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 
 ## News
 
+* [07/03/2023] Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of **65.6 mAP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**.
+* [07/03/2023] Code for Co-Deformable-DETR is released.
 * [11/19/2022] We achieved 64.4 AP on COCO minival and 64.5 AP on COCO test-dev with only ImageNet-1K as pre-training data. Codes will be available soon.
    
 
 ## Introduction
 
-In this paper, we present a novel collaborative hybrid assignments training scheme, namely Co-DETR, to learn more efficient and effective DETR-based detectors from versatile label assignment manners. This new training scheme can easily enhance the encoder's learning ability in end-to-end detectors by training the multiple parallel auxiliary heads supervised by one-to-many label assignments. In addition, we conduct extra customized positive queries by extracting the positive coordinates from these auxiliary heads to improve the training efficiency of positive samples in decoder. Extensive experiments on MS COCO dataset demonstrate the efficiency and effectiveness of our Co-DETR. Surprisingly, incorporated with the large-scale backbone MixMIM-g with 1-Billion parameters, we achieve the 64.5\% AP on MS COCO test dev, achieving superior performance with much fewer extra data sizes.
+In this paper, we present a novel collaborative hybrid assignments training scheme, namely Co-DETR, to learn more efficient and effective DETR-based detectors from versatile label assignment manners. 
+1. **Encoder optimization**: The proposed training scheme can easily enhance the encoder's learning ability in end-to-end detectors by training multiple parallel auxiliary heads supervised by one-to-many label assignments. 
+2. **Decoder optimization**: We conduct extra customized positive queries by extracting the positive coordinates from these auxiliary heads to improve attention learning of the decoder. 
+3. **State-of-the-art performance**: Incorporated with the ViT-L backbone (304M parameters),
+we achieve the 65.6\% mAP on MS COCO test-dev, outperforming previous methods with much fewer model sizes.
 
 ![teaser](figures/framework.png)
 
-## Results on COCO with ResNet-50
+## Model Zoo
+### Performance of improved Co-DETR
 
-| Model  | Backbone | Epochs | Queries | K | AP |
-| ------ | -------- | ------ | ------- | - | -- |
-| Deformable-DETR | R50 | 12 | 300 | 0 | 37.1 |
-| Deformable-DETR | R50 | 36 | 300 | 0 | 43.3 |
-| Co-Deformable-DETR | R50 | 12 | 300 | 1 | 42.3 |
-| Co-Deformable-DETR | R50 | 36 | 300 | 1 | 46.8 |
-| Co-Deformable-DETR | R50 | 12 | 300 | 2 | 42.9 |
-| Co-Deformable-DETR | R50 | 36 | 300 | 2 | 46.5 |
+| Model  | Backbone | Epochs | Queries | Dataset | box AP |
+| ------ | -------- | ------ | ------- | ------- | ------ |
+| Co-DINO-5scale | R50 | 12 | 900 | COCO | 51.7 |
+| Co-DINO-5scale | R50 | 36 | 900 | COCO | 54.0 |
+| Co-DINO-5scale-9enc | R50 | 12 | 900 | COCO | 52.1 |
+| Co-DINO-5scale-9enc | R50 | 36 | 900 | COCO | 54.7 |
+| Co-DINO-5scale | Swin-L | 12 | 900 | COCO | 58.8 |
+| Co-DINO-5scale | Swin-L | 36 | 900 | COCO | 60.0 |
+| Co-DINO-5scale | Swin-L | 36 | 900 | LVIS | 56.2 |
 
 
-For Deformable-DETR++, we follow the settings in [H-DETR](https://github.com/HDETR/H-Deformable-DETR).
+### Results on Deformable-DETR
 
-| Model  | Backbone | Epochs | Queries | K | AP |
-| ------ | -------- | ------ | ------- | - | -- |
-| Deformable-DETR++ | R50 | 12 | 300 | 0 | 47.1 |
-| Co-Deformable-DETR | R50 | 12 | 300 | 1 | 48.7 |
-| Co-Deformable-DETR | R50 | 12 | 300 | 2 | 49.5 |
-| H-Deformable-DETR | R50 | 12 | 300 | 0 | 48.4 |
-| Co-H-Deformable-DETR | R50 | 12 | 300 | 1 | 49.2 |
-| Co-H-Deformable-DETR | R50 | 12 | 300 | 2 | 49.7 |
+| Model  | Backbone | Epochs | Queries | box AP | Ckpt |
+| ------ | -------- | ------ | ------- | ------ | ---- |
+| Co-Deformable-DETR | R50 | 12 | 300 | 49.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-T | 12 | 300 | 51.7 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-T | 36 | 300 | 54.1 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-S | 12 | 300 | 53.4 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-S | 36 | 300 | 55.3 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-B | 12 | 300 | 55.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-B | 36 | 300 | 57.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-L | 12 | 300 | 56.9 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Co-Deformable-DETR | Swin-L | 36 | 900 | 58.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
 
-## Results on COCO with Swin Transformer
+## Running
 
-| Model  | Backbone | Epochs | Queries | AP |
-| ------ | -------- | ------ | ------- | -- |
-| Deformable-DETR++ | Swin-T | 12 | 300 | 49.8 |
-| Deformable-DETR++ | Swin-B | 12 | 300 | 54.0 |
-| Deformable-DETR++ | Swin-L | 12 | 300 | 55.2 |
+### Install
+We implement Co-DETR using [MMDetection V2.25.3](https://github.com/open-mmlab/mmdetection/releases/tag/v2.25.3) and [MMCV V1.5.0](https://github.com/open-mmlab/mmcv/releases/tag/v1.5.0).
+The source code of MMdetection has been included in this repo and you only need to build MMCV following [official instructions](https://github.com/open-mmlab/mmcv/tree/v1.5.0#installation).
+We test our models under ```python=3.7.11,pytorch=1.11.0,cuda=11.3```. Other versions may not be compatible. 
 
-| Model  | Backbone | Epochs | Queries | AP (K=1) | AP (K=2) |
-| ------ | -------- | ------ | ------- | -------- | -------- |
-| Co-Deformable-DETR | Swin-T | 12 | 300 | 51.6 | 51.7 |
-| Co-Deformable-DETR | Swin-T | 36 | 300 | 53.9 | 54.1 |
-| Co-Deformable-DETR | Swin-S | 12 | 300 | 53.4 | 53.4 |
-| Co-Deformable-DETR | Swin-S | 36 | 300 | 55.0 | 55.3 |
-| Co-Deformable-DETR | Swin-B | 12 | 300 | 55.2 | 55.5 |
-| Co-Deformable-DETR | Swin-B | 36 | 300 | 57.0 | 57.5 |
-| Co-Deformable-DETR | Swin-L | 12 | 300 | 56.4 | 56.9 |
-| Co-Deformable-DETR | Swin-L | 36 | 900 | 58.1 | 58.3 |
-| Co-Deformable-DETR (top 300) | Swin-L | 36 | 900 | 58.3 | 58.5 |
+### Data
+The COCO dataset should be organized as:
+```
+data/
+  ├── train2017/
+  ├── val2017/
+  └── annotations/
+  	├── instances_train2017.json
+  	└── instances_val2017.json
+```
 
-##  Cite Co-DETR
+### Training
+Train Co-Deformable-DETR + ResNet-50 with 8 GPUs:
+```shell
+sh tools/dist_train.sh projects/configs/co_deformable_detr/co_deformable_detr_r50_1x_coco.py 8 path_to_exp
+```
+Train using slurm:
+```shell
+sh tools/slurm_train.sh partition job_name projects/configs/co_deformable_detr/co_deformable_detr_r50_1x_coco.py path_to_exp
+```
+
+### Testing
+Test Co-Deformable-DETR + ResNet-50 with 8 GPUs, and evaluate:
+```shell
+sh tools/dist_test.sh  projects/configs/co_deformable_detr/co_deformable_detr_r50_1x_coco.py  path_to_checkpoint 8 --eval bbox
+```
+Test using slurm:
+```shell
+sh tools/slurm_test.sh partition job_name projects/configs/co_deformable_detr/co_deformable_detr_r50_1x_coco.py path_to_checkpoint --eval bbox
+```
+
+## Cite Co-DETR
 
 If you find this repository useful, please use the following BibTeX entry for citation.
 
