@@ -39,17 +39,17 @@ we achieve the 65.6\% AP on MS COCO test-dev, outperforming previous methods wit
 
 ### Results on Deformable-DETR
 
-| Model  | Backbone | Epochs | Queries | box AP | Ckpt |
-| ------ | -------- | ------ | ------- | ------ | ---- |
-| Co-Deformable-DETR | R50 | 12 | 300 | 49.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-T | 12 | 300 | 51.7 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-T | 36 | 300 | 54.1 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-S | 12 | 300 | 53.4 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-S | 36 | 300 | 55.3 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-B | 12 | 300 | 55.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-B | 36 | 300 | 57.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-L | 12 | 300 | 56.9 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
-| Co-Deformable-DETR | Swin-L | 36 | 900 | 58.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) |
+| Model  | Backbone | Epochs | Queries | box AP | Ckpt | Log |
+| ------ | -------- | ------ | ------- | ------ | ---- | --- |
+| Co-Deformable-DETR | R50 | 12 | 300 | 49.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-T | 12 | 300 | 51.7 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-T | 36 | 300 | 54.1 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-S | 12 | 300 | 53.4 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-S | 36 | 300 | 55.3 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-B | 12 | 300 | 55.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-B | 36 | 300 | 57.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-L | 12 | 300 | 56.9 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
+| Co-Deformable-DETR | Swin-L | 36 | 900 | 58.5 | [google](https://drive.google.com/drive/folders/1asWoZ3SuM6APTL9D-QUF_YW9mjULNdh9?usp=sharing) | [google](https://drive.google.com/drive/folders/1GktHRm2oAxmOzdK3jPaRqNu4uOQhecgZ?usp=sharing) |
 
 ## Running
 
