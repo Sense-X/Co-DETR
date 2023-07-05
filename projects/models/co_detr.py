@@ -309,7 +309,7 @@ class CoDETR(BaseDetector):
         """Test without augmentation."""
         assert self.eval_module in ['detr', 'one-stage', 'two-stage']
         if self.with_bbox and self.eval_module=='one-stage':
-            return self.simple_test_query_head(img, img_metas, proposals, rescale)
+            return self.simple_test_bbox_head(img, img_metas, proposals, rescale)
         if self.with_roi_head and self.eval_module=='two-stage':
             return self.simple_test_roi_head(img, img_metas, proposals, rescale)
         return self.simple_test_query_head(img, img_metas, proposals, rescale)
