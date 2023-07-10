@@ -238,7 +238,7 @@ class CoDETR(BaseDetector):
         x = self.extract_feat(img, img_metas)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
-            x = results[-2]
+            x = results[-1]
         if proposals is None:
             proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
         else:
@@ -296,7 +296,7 @@ class CoDETR(BaseDetector):
         x = self.extract_feat(img, img_metas)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
-            x = results[-2]
+            x = results[-1]
         results_list = self.bbox_head[self.eval_index].simple_test(
             x, img_metas, rescale=rescale)
         bbox_results = [
