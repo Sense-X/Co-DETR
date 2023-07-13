@@ -5,6 +5,7 @@ import cv2
 import mmcv
 
 from mmdet.apis import inference_detector, init_detector
+from projects import *
 
 
 def parse_args():

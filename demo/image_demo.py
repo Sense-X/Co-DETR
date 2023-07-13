@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 
 from mmdet.apis import (async_inference_detector, inference_detector,
                         init_detector, show_result_pyplot)
+from projects import *
 
 
 def parse_args():
