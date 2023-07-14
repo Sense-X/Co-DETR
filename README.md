@@ -1,4 +1,4 @@
-# DETRs with Collaborative Hybrid Assignments Training
+# [ICCV 2023] DETRs with Collaborative Hybrid Assignments Training
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/detrs-with-collaborative-hybrid-assignments/object-detection-on-coco-minival)](https://paperswithcode.com/sota/object-detection-on-coco-minival?p=detrs-with-collaborative-hybrid-assignments)
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/detrs-with-collaborative-hybrid-assignments/object-detection-on-coco)](https://paperswithcode.com/sota/object-detection-on-coco?p=detrs-with-collaborative-hybrid-assignments)	
@@ -11,6 +11,7 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 
 ## News
 
+* [07/14/2023] Co-DETR is accepted to ICCV 2023!
 * [07/12/2023] We finetune Co-DETR on LVIS and achieve the best results **without TTA**: **71.2 box AP** and **59.7 mask AP** on LVIS minival, **66.9 box AP** and **56.0 mask AP** on LVIS val. For instance segmentation, we report the performance of the auxiliary mask branch.
 * [07/03/2023] Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of **65.6 AP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**.
 * [07/03/2023] Code for Co-Deformable-DETR is released.
