@@ -98,7 +98,7 @@ class CoDETR(BaseDetector):
         return ((hasattr(self, 'roi_head') and self.roi_head is not None and len(self.roi_head)>0)
                 or (hasattr(self, 'bbox_head') and self.bbox_head is not None and len(self.bbox_head)>0))
 
-    def extract_feat(self, img, img_metas=None):
+    def extract_feat(self, img):
         """Directly extract features from the backbone+neck."""
         x = self.backbone(img)
         if self.with_neck:
@@ -155,7 +155,7 @@ class CoDETR(BaseDetector):
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
-        x = self.extract_feat(img, img_metas)
+        x = self.extract_feat(img)
 
         losses = dict()
 
@@ -235,7 +235,7 @@ class CoDETR(BaseDetector):
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
-        x = self.extract_feat(img, img_metas)
+        x = self.extract_feat(img)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
             x = results[-1]
@@ -266,7 +266,7 @@ class CoDETR(BaseDetector):
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
-        x = self.extract_feat(img, img_metas)
+        x = self.extract_feat(img)
         results_list = self.query_head.simple_test(
             x, img_metas, rescale=rescale)
         bbox_results = [
@@ -293,7 +293,7 @@ class CoDETR(BaseDetector):
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
-        x = self.extract_feat(img, img_metas)
+        x = self.extract_feat(img)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
             x = results[-1]
@@ -336,7 +336,7 @@ class CoDETR(BaseDetector):
             f'{self.query_head.__class__.__name__}' \
             ' does not support test-time augmentation'
 
-        feats = self.extract_feats(imgs)
+        feats = self.extract_feat(imgs)
         results_list = self.query_head.aug_test(
             feats, img_metas, rescale=rescale)
         bbox_results = [
@@ -345,8 +345,12 @@ class CoDETR(BaseDetector):
         ]
         return bbox_results
 
-    def onnx_export(self, img, img_metas, with_nms=True):
-        """Test function without test time augmentation.
+    # over-write `onnx_export` because:
+    # (1) the forward of bbox_head requires img_metas
+    # (2) the different behavior (e.g. construction of `masks`) between
+    # torch and ONNX model, during the forward of bbox_head
+    def onnx_export(self, img, img_metas):
+        """Test function for exporting to ONNX, without test time augmentation.
 
         Args:
             img (torch.Tensor): input images.
@@ -356,23 +360,16 @@ class CoDETR(BaseDetector):
             tuple[Tensor, Tensor]: dets of shape [N, num_det, 5]
                 and class labels of shape [N, num_det].
         """
+        img_shape = torch._shape_as_tensor(img)[2:]
+        img_metas[0]['batch_input_shape'] = img_shape
         x = self.extract_feat(img)
-        outs = self.query_head(x)
-        # get origin input shape to support onnx dynamic shape
-
+        # forward of this head requires img_metas
+        outs = self.query_head.forward_onnx(x, img_metas)
+        outs = outs[:2]
         # get shape as tensor
         img_shape = torch._shape_as_tensor(img)[2:]
         img_metas[0]['img_shape_for_onnx'] = img_shape
-        # get pad input shape to support onnx dynamic shape for exporting
-        # `CornerNet` and `CentripetalNet`, which 'pad_shape' is used
-        # for inference
-        img_metas[0]['pad_shape_for_onnx'] = img_shape
 
-        if len(outs) == 2:
-            # add dummy score_factor
-            outs = (*outs, None)
-        # TODO Can we change to `get_bboxes` when `onnx_export` fail
-        det_bboxes, det_labels = self.query_head.onnx_export(
-            *outs, img_metas, with_nms=with_nms)
+        det_bboxes, det_labels = self.query_head.onnx_export(*outs, img_metas)
 
         return det_bboxes, det_labels
