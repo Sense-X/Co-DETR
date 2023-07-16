@@ -11,11 +11,11 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 
 ## News
 
-* [07/14/2023] Co-DETR is accepted to ICCV 2023!
-* [07/12/2023] We finetune Co-DETR on LVIS and achieve the best results **without TTA**: **71.2 box AP** and **59.7 mask AP** on LVIS minival, **66.9 box AP** and **56.0 mask AP** on LVIS val. For instance segmentation, we report the performance of the auxiliary mask branch.
-* **[07/03/2023]** Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of <strike>65.6</strike> **66.0 AP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**. It is the **first model to exceed 66.0 AP on COCO test-dev**.
-* [07/03/2023] Code for Co-Deformable-DETR is released.
-* [11/19/2022] We achieved 64.4 AP on COCO minival and 64.5 AP on COCO test-dev with only ImageNet-1K as pre-training data. Codes will be available soon.
+* ***[07/14/2023]*** Co-DETR is accepted to ICCV 2023!
+* ***[07/12/2023]*** We finetune Co-DETR on LVIS and achieve the best results **without TTA**: **71.2 box AP** and **59.7 mask AP** on LVIS minival, **66.9 box AP** and **56.0 mask AP** on LVIS val. For instance segmentation, we report the performance of the auxiliary mask branch.
+* ***[07/03/2023]*** Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of <strike>65.6</strike> **66.0 AP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**. It is the **first model to exceed 66.0 AP on COCO test-dev**.
+* ***[07/03/2023]*** Code for Co-Deformable-DETR is released.
+* ***[11/19/2022]*** We achieved 64.4 AP on COCO minival and 64.5 AP on COCO test-dev with only ImageNet-1K as pre-training data. Codes will be available soon.
    
 
 ## Introduction
