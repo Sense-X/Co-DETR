@@ -14,6 +14,7 @@ from mmdet.datasets import (build_dataloader, build_dataset,
                             replace_ImageToTensor)
 from mmdet.utils import (build_ddp, build_dp, compat_cfg,
                          find_latest_checkpoint, get_root_logger)
+from projects import *
 
 
 def init_random_seed(seed=None, device='cuda'):

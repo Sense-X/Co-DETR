@@ -13,6 +13,7 @@ from mmdet.core import get_classes
 from mmdet.datasets import replace_ImageToTensor
 from mmdet.datasets.pipelines import Compose
 from mmdet.models import build_detector
+from projects import *
 
 
 def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):

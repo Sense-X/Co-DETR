@@ -31,19 +31,25 @@ In this paper, we present a novel collaborative hybrid assignments training sche
 
 ## Model Zoo
 
-### Performance of improved Co-DETR
+### Performance of improved Co-DETR with ResNet-50
 
 | Model  | Backbone | Epochs | Aug | Dataset | box AP | Config | Download |
 | ------ | -------- | ------ | --- | ------- | ------ | ------ | ----- |
 | Co-DINO | R50 | 12 | DETR | COCO | 52.1 | config | model |
-| Co-DINO | Swin-L | 12 | DETR | COCO | 58.9 | config | model |
-| Co-DINO | Swin-L | 36 | DETR | COCO | 60.0 | config | model |
 | Co-DINO | R50 | 12 | LSJ | COCO | 52.1 | config | model |
 | Co-DINO-9enc | R50 | 12 | LSJ | COCO | 52.6 | config | model |
 | Co-DINO | R50 | 36 | LSJ | COCO | 54.8 | config | model |
 | Co-DINO-9enc | R50 | 36 | LSJ | COCO | 55.4 | config | model |
+
+
+### Performance of improved Co-DETR with Swin-L
+
+| Model  | Backbone | Epochs | Aug | Dataset | box AP | Config | Download |
+| ------ | -------- | ------ | --- | ------- | ------ | ------ | ----- |
+| Co-DINO | Swin-L | 12 | DETR | COCO | 58.9 | config | model |
+| Co-DINO | Swin-L | 36 | DETR | COCO | 60.0 | config | model |
 | Co-DINO | Swin-L | 12 | LSJ | COCO | 59.3 | config | model |
-| Co-DINO | Swin-L | 36 | LSJ | COCO | 60.3 | config | model |
+| Co-DINO | Swin-L | 36 | LSJ | COCO | 60.7 | config | model |
 | Co-DINO | Swin-L | 36 | LSJ | LVIS | 56.2 | config | model |
 
 ### Results on Deformable-DETR
