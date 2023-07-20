@@ -6,7 +6,7 @@ from mmcv.cnn import Linear, bias_init_with_prob, constant_init
 from mmcv.runner import force_fp32
 from mmdet.core import (bbox_cxcywh_to_xyxy, bbox_xyxy_to_cxcywh,
                         build_assigner, build_sampler, multi_apply,
-                        reduce_mean)
+                        reduce_mean, bbox_overlaps)
 from mmdet.models.utils.transformer import inverse_sigmoid
 from mmdet.models.builder import HEADS
 from mmdet.models.dense_heads.detr_head import DETRHead
@@ -222,7 +222,7 @@ class CoDeformDETRHead(DETRHead):
                 as_two_stage is True it would be returned, otherwise \
                 `None` would be returned.
         """
-        anx_coords, aux_labels, aux_targets, aux_label_weights, aux_bbox_weights, aux_feats, attn_masks = aux_targets
+        aux_coords, aux_labels, aux_targets, aux_label_weights, aux_bbox_weights, aux_feats, attn_masks = aux_targets
         batch_size = mlvl_feats[0].size(0)
         input_img_h, input_img_w = img_metas[0]['batch_input_shape']
         img_masks = mlvl_feats[0].new_ones(
@@ -246,7 +246,7 @@ class CoDeformDETRHead(DETRHead):
                     mlvl_masks,
                     query_embeds,
                     mlvl_positional_encodings,
-                    anx_coords,
+                    aux_coords,
                     pos_feats=aux_feats,
                     reg_branches=self.reg_branches if self.with_box_refine else None,  # noqa:E501
                     cls_branches=self.cls_branches if self.as_two_stage else None,  # noqa:E501
@@ -283,14 +283,14 @@ class CoDeformDETRHead(DETRHead):
                 None, None
 
     def loss_single_aux(self,
-                    cls_scores,
-                    bbox_preds,
-                    labels,
-                    label_weights,
-                    bbox_targets,
-                    bbox_weights,
-                    img_metas,
-                    gt_bboxes_ignore_list=None):
+                        cls_scores,
+                        bbox_preds,
+                        labels,
+                        label_weights,
+                        bbox_targets,
+                        bbox_weights,
+                        img_metas,
+                        gt_bboxes_ignore_list=None):
         """"Loss function for outputs from a single decoder layer of a single
         feature level.
 
@@ -314,10 +314,13 @@ class CoDeformDETRHead(DETRHead):
         """
         num_imgs = cls_scores.size(0)
         num_q = cls_scores.size(1)
-        labels = labels.reshape(num_imgs * num_q)
-        label_weights = label_weights.reshape(num_imgs * num_q)
-        bbox_targets = bbox_targets.reshape(num_imgs * num_q, 4)
-        bbox_weights = bbox_weights.reshape(num_imgs * num_q, 4)
+        try:
+            labels = labels.reshape(num_imgs * num_q)
+            label_weights = label_weights.reshape(num_imgs * num_q)
+            bbox_targets = bbox_targets.reshape(num_imgs * num_q, 4)
+            bbox_weights = bbox_weights.reshape(num_imgs * num_q, 4)
+        except:
+            return cls_scores.mean()*0, cls_scores.mean()*0, cls_scores.mean()*0
 
         bg_class_ind = self.num_classes
         num_total_pos = len(((labels >= 0) & (labels < bg_class_ind)).nonzero().squeeze(1))
@@ -461,13 +464,13 @@ class CoDeformDETRHead(DETRHead):
         else:
             attn_mask = None
 
-        anx_coords = torch.cat(aux_coords, dim=0)
+        aux_coords = torch.cat(aux_coords, dim=0)
         aux_labels = torch.cat(aux_labels, dim=0)
         aux_targets = torch.cat(aux_targets, dim=0)
         aux_feats = torch.cat(aux_feats, dim=0)
         aux_label_weights = label_weights
         aux_bbox_weights = bbox_weights
-        return (anx_coords, aux_labels, aux_targets, aux_label_weights, aux_bbox_weights, aux_feats, attn_masks)
+        return (aux_coords, aux_labels, aux_targets, aux_label_weights, aux_bbox_weights, aux_feats, attn_masks)
 
     # over-write because img_metas are needed as inputs for bbox_head.
     def forward_train_aux(self,
@@ -509,21 +512,21 @@ class CoDeformDETRHead(DETRHead):
 
     @force_fp32(apply_to=('all_cls_scores_list', 'all_bbox_preds_list'))
     def loss_aux(self,
-             all_cls_scores,
-             all_bbox_preds,
-             enc_cls_scores,
-             enc_bbox_preds,
-             anx_coords, 
-             aux_labels, 
-             aux_targets, 
-             aux_label_weights, 
-             aux_bbox_weights,
-             aux_feats,
-             attn_masks,
-             gt_bboxes_list,
-             gt_labels_list,
-             img_metas,
-             gt_bboxes_ignore=None):
+                 all_cls_scores,
+                 all_bbox_preds,
+                 enc_cls_scores,
+                 enc_bbox_preds,
+                 aux_coords, 
+                 aux_labels, 
+                 aux_targets, 
+                 aux_label_weights, 
+                 aux_bbox_weights,
+                 aux_feats,
+                 attn_masks,
+                 gt_bboxes_list,
+                 gt_labels_list,
+                 img_metas,
+                 gt_bboxes_ignore=None):
         """"Loss function.
 
         Args:
@@ -679,7 +682,7 @@ class CoDeformDETRHead(DETRHead):
         ]
         img_metas_list = [img_metas for _ in range(num_dec_layers)]
 
-        losses_cls, losses_bbox, losses_iou, costs = multi_apply(
+        losses_cls, losses_bbox, losses_iou = multi_apply(
             self.loss_single, all_cls_scores, all_bbox_preds,
             all_gt_bboxes_list, all_gt_labels_list, img_metas_list,
             all_gt_bboxes_ignore_list)
@@ -755,7 +758,6 @@ class CoDeformDETRHead(DETRHead):
         """
         cls_scores = all_cls_scores[-1]
         bbox_preds = all_bbox_preds[-1]
-
         result_list = []
         for img_id in range(len(img_metas)):
             cls_score = cls_scores[img_id]
@@ -804,7 +806,7 @@ class CoDeformDETRHead(DETRHead):
                                            gt_bboxes_list, gt_labels_list,
                                            img_metas, gt_bboxes_ignore_list)
         (labels_list, label_weights_list, bbox_targets_list, bbox_weights_list,
-         num_total_pos, num_total_neg, cost_result_list) = cls_reg_targets
+         num_total_pos, num_total_neg) = cls_reg_targets
         labels = torch.cat(labels_list, 0)
         label_weights = torch.cat(label_weights_list, 0)
         bbox_targets = torch.cat(bbox_targets_list, 0)
@@ -851,7 +853,7 @@ class CoDeformDETRHead(DETRHead):
         # regression L1 loss
         loss_bbox = self.loss_bbox(
             bbox_preds, bbox_targets, bbox_weights, avg_factor=num_total_pos)
-        return loss_cls, loss_bbox, loss_iou, cost_result_list
+        return loss_cls, loss_bbox, loss_iou
 
     def get_targets(self,
                     cls_scores_list,
@@ -903,13 +905,13 @@ class CoDeformDETRHead(DETRHead):
             ]
 
         (labels_list, label_weights_list, bbox_targets_list,
-         bbox_weights_list, pos_inds_list, neg_inds_list, cost_result_list) = multi_apply(
+         bbox_weights_list, pos_inds_list, neg_inds_list) = multi_apply(
              self._get_target_single, cls_scores_list, bbox_preds_list,
              gt_bboxes_list, gt_labels_list, img_metas, gt_bboxes_ignore_list)
         num_total_pos = sum((inds.numel() for inds in pos_inds_list))
         num_total_neg = sum((inds.numel() for inds in neg_inds_list))
         return (labels_list, label_weights_list, bbox_targets_list,
-                bbox_weights_list, num_total_pos, num_total_neg, cost_result_list)
+                bbox_weights_list, num_total_pos, num_total_neg)
 
     def _get_target_single(self,
                            cls_score,
@@ -982,7 +984,7 @@ class CoDeformDETRHead(DETRHead):
         bbox_targets[pos_inds] = pos_gt_bboxes_targets
 
         return (labels, label_weights, bbox_targets, bbox_weights, pos_inds,
-                neg_inds, None)
+                neg_inds)
 
     def _get_bboxes_single(self,
                            cls_score,
@@ -1018,7 +1020,9 @@ class CoDeformDETRHead(DETRHead):
         """
         assert len(cls_score) == len(bbox_pred)
         max_per_img = self.test_cfg.get('max_per_img', self.num_query)
-
+        score_thr = self.test_cfg.get('score_thr', 0)
+        if with_nms:
+            max_per_img = self.num_query
         # exclude background
         if self.loss_cls.use_sigmoid:
             cls_score = cls_score.sigmoid()
@@ -1032,6 +1036,11 @@ class CoDeformDETRHead(DETRHead):
             bbox_pred = bbox_pred[bbox_index]
             det_labels = det_labels[bbox_index]
 
+        valid_mask = scores > score_thr
+        scores = scores[valid_mask]
+        bbox_pred = bbox_pred[valid_mask]
+        det_labels = det_labels[valid_mask]
+
         det_bboxes = bbox_cxcywh_to_xyxy(bbox_pred)
         det_bboxes[:, 0::2] = det_bboxes[:, 0::2] * img_shape[1]
         det_bboxes[:, 1::2] = det_bboxes[:, 1::2] * img_shape[0]
@@ -1041,8 +1050,8 @@ class CoDeformDETRHead(DETRHead):
             det_bboxes /= det_bboxes.new_tensor(scale_factor)
 
         if with_nms:
-            det_bboxes, keep_idxs = batched_nms(det_bboxes, scores.unsqueeze(1),
-                                                det_labels, cfg.nms)
+            cfg = self.test_cfg
+            det_bboxes, keep_idxs = batched_nms(det_bboxes, scores, det_labels, cfg.nms)
             det_bboxes = det_bboxes[:cfg.max_per_img]
             det_labels = det_labels[keep_idxs][:cfg.max_per_img]
             return det_bboxes, det_labels
@@ -1050,7 +1059,6 @@ class CoDeformDETRHead(DETRHead):
         det_bboxes = torch.cat((det_bboxes, scores.unsqueeze(1)), -1)
 
         return det_bboxes, det_labels
-
 
     def aug_test_bboxes(self, feats, img_metas, rescale=False):
         """Test det bboxes with test-time augmentation.
@@ -1067,3 +1075,27 @@ class CoDeformDETRHead(DETRHead):
             list[ndarray]: bbox results of each class
         """
         raise ValueError('Not implemented')
+
+    def simple_test_bboxes(self, feats, img_metas, rescale=False):
+        """Test det bboxes without test-time augmentation.
+
+        Args:
+            feats (tuple[torch.Tensor]): Multi-level features from the
+                upstream network, each is a 4D-tensor.
+            img_metas (list[dict]): List of image information.
+            rescale (bool, optional): Whether to rescale the results.
+                Defaults to False.
+
+        Returns:
+            list[tuple[Tensor, Tensor]]: Each item in result_list is 2-tuple.
+                The first item is ``bboxes`` with shape (n, 5),
+                where 5 represent (tl_x, tl_y, br_x, br_y, score).
+                The shape of the second tensor in the tuple is ``labels``
+                with shape (n,)
+        """
+        # forward of this head requires img_metas
+        with_nms = self.test_cfg.get('nms', None)
+        with_nms = True if with_nms is not None else False
+        outs = self.forward(feats, img_metas)
+        results_list = self.get_bboxes(*outs, img_metas, rescale=rescale, with_nms=with_nms)
+        return results_list

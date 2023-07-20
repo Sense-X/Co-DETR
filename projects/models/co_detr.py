@@ -22,10 +22,12 @@ class CoDETR(BaseDetector):
                  pretrained=[None, None],
                  init_cfg=None,
                  with_pos_coord=True,
+                 with_attn_mask=True,
                  eval_module='detr',
                  eval_index=0):
         super(CoDETR, self).__init__(init_cfg)
         self.with_pos_coord = with_pos_coord
+        self.with_attn_mask = with_attn_mask
         # Module for evaluation, ['detr', 'one-stage', 'two-stage']
         self.eval_module = eval_module
         # Module index for evaluation
@@ -98,7 +100,7 @@ class CoDETR(BaseDetector):
         return ((hasattr(self, 'roi_head') and self.roi_head is not None and len(self.roi_head)>0)
                 or (hasattr(self, 'bbox_head') and self.bbox_head is not None and len(self.bbox_head)>0))
 
-    def extract_feat(self, img):
+    def extract_feat(self, img, img_metas=None):
         """Directly extract features from the backbone+neck."""
         x = self.backbone(img)
         if self.with_neck:
@@ -155,10 +157,14 @@ class CoDETR(BaseDetector):
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
 
-        x = self.extract_feat(img)
+        if not self.with_attn_mask: # remove attn mask for LSJ
+            for i in range(len(img_metas)):
+                input_img_h, input_img_w = img_metas[i]['batch_input_shape']
+                img_metas[i]['img_shape'] = [input_img_h, input_img_w, 3]
+
+        x = self.extract_feat(img, img_metas)
 
         losses = dict()
-
         def upd_loss(losses, idx, weight=1):
             new_losses = dict()
             for k,v in losses.items():
@@ -234,11 +240,15 @@ class CoDETR(BaseDetector):
         batch_input_shape = tuple(img[0].size()[-2:])
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
+        if not self.with_attn_mask: # remove attn mask for LSJ
+            for i in range(len(img_metas)):
+                input_img_h, input_img_w = img_metas[i]['batch_input_shape']
+                img_metas[i]['img_shape'] = [input_img_h, input_img_w, 3]
 
-        x = self.extract_feat(img)
+        x = self.extract_feat(img, img_metas)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
-            x = results[-1]
+            x = results[-2]
         if proposals is None:
             proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
         else:
@@ -265,8 +275,12 @@ class CoDETR(BaseDetector):
         batch_input_shape = tuple(img[0].size()[-2:])
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
+        if not self.with_attn_mask: # remove attn mask for LSJ
+            for i in range(len(img_metas)):
+                input_img_h, input_img_w = img_metas[i]['batch_input_shape']
+                img_metas[i]['img_shape'] = [input_img_h, input_img_w, 3]
 
-        x = self.extract_feat(img)
+        x = self.extract_feat(img, img_metas)
         results_list = self.query_head.simple_test(
             x, img_metas, rescale=rescale)
         bbox_results = [
@@ -292,11 +306,15 @@ class CoDETR(BaseDetector):
         batch_input_shape = tuple(img[0].size()[-2:])
         for img_meta in img_metas:
             img_meta['batch_input_shape'] = batch_input_shape
+        if not self.with_attn_mask: # remove attn mask for LSJ
+            for i in range(len(img_metas)):
+                input_img_h, input_img_w = img_metas[i]['batch_input_shape']
+                img_metas[i]['img_shape'] = [input_img_h, input_img_w, 3]
 
-        x = self.extract_feat(img)
+        x = self.extract_feat(img, img_metas)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
-            x = results[-1]
+            x = results[-2]
         results_list = self.bbox_head[self.eval_index].simple_test(
             x, img_metas, rescale=rescale)
         bbox_results = [
@@ -309,7 +327,7 @@ class CoDETR(BaseDetector):
         """Test without augmentation."""
         assert self.eval_module in ['detr', 'one-stage', 'two-stage']
         if self.with_bbox and self.eval_module=='one-stage':
-            return self.simple_test_bbox_head(img, img_metas, proposals, rescale)
+            return self.simple_test_query_head(img, img_metas, proposals, rescale)
         if self.with_roi_head and self.eval_module=='two-stage':
             return self.simple_test_roi_head(img, img_metas, proposals, rescale)
         return self.simple_test_query_head(img, img_metas, proposals, rescale)
@@ -336,7 +354,7 @@ class CoDETR(BaseDetector):
             f'{self.query_head.__class__.__name__}' \
             ' does not support test-time augmentation'
 
-        feats = self.extract_feat(imgs)
+        feats = self.extract_feats(imgs)
         results_list = self.query_head.aug_test(
             feats, img_metas, rescale=rescale)
         bbox_results = [
@@ -345,12 +363,8 @@ class CoDETR(BaseDetector):
         ]
         return bbox_results
 
-    # over-write `onnx_export` because:
-    # (1) the forward of bbox_head requires img_metas
-    # (2) the different behavior (e.g. construction of `masks`) between
-    # torch and ONNX model, during the forward of bbox_head
-    def onnx_export(self, img, img_metas):
-        """Test function for exporting to ONNX, without test time augmentation.
+    def onnx_export(self, img, img_metas, with_nms=True):
+        """Test function without test time augmentation.
 
         Args:
             img (torch.Tensor): input images.
@@ -360,16 +374,23 @@ class CoDETR(BaseDetector):
             tuple[Tensor, Tensor]: dets of shape [N, num_det, 5]
                 and class labels of shape [N, num_det].
         """
-        img_shape = torch._shape_as_tensor(img)[2:]
-        img_metas[0]['batch_input_shape'] = img_shape
         x = self.extract_feat(img)
-        # forward of this head requires img_metas
-        outs = self.query_head.forward_onnx(x, img_metas)
-        outs = outs[:2]
+        outs = self.query_head(x)
+        # get origin input shape to support onnx dynamic shape
+
         # get shape as tensor
         img_shape = torch._shape_as_tensor(img)[2:]
         img_metas[0]['img_shape_for_onnx'] = img_shape
+        # get pad input shape to support onnx dynamic shape for exporting
+        # `CornerNet` and `CentripetalNet`, which 'pad_shape' is used
+        # for inference
+        img_metas[0]['pad_shape_for_onnx'] = img_shape
 
-        det_bboxes, det_labels = self.query_head.onnx_export(*outs, img_metas)
+        if len(outs) == 2:
+            # add dummy score_factor
+            outs = (*outs, None)
+        # TODO Can we change to `get_bboxes` when `onnx_export` fail
+        det_bboxes, det_labels = self.query_head.onnx_export(
+            *outs, img_metas, with_nms=with_nms)
 
         return det_bboxes, det_labels

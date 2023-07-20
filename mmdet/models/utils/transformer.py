@@ -28,6 +28,8 @@ except ImportError:
         '`mmcv.ops.multi_scale_deform_attn`, please update your MMCV')
     from mmcv.cnn.bricks.transformer import MultiScaleDeformableAttention
 
+import fairscale
+from fairscale.nn.checkpoint import checkpoint_wrapper
 
 def nlc_to_nchw(x, hw_shape):
     """Convert [N, L, C] shape tensor to [N, C, H, W] shape tensor.
@@ -459,7 +461,7 @@ class DetrTransformerEncoder(TransformerLayerSequence):
             `LN`. Only used when `self.pre_norm` is `True`
     """
 
-    def __init__(self, *args, post_norm_cfg=dict(type='LN'), **kwargs):
+    def __init__(self, *args, post_norm_cfg=dict(type='LN'), with_cp=-1, **kwargs):
         super(DetrTransformerEncoder, self).__init__(*args, **kwargs)
         if post_norm_cfg is not None:
             self.post_norm = build_norm_layer(
@@ -469,17 +471,11 @@ class DetrTransformerEncoder(TransformerLayerSequence):
                                       f'{self.__class__.__name__},' \
                                       f'Please specify post_norm_cfg'
             self.post_norm = None
+        self.with_cp = with_cp
+        if self.with_cp > 0:
+            for i in range(self.with_cp):
+                self.layers[i] = checkpoint_wrapper(self.layers[i])
 
-    def forward(self, *args, **kwargs):
-        """Forward function for `TransformerCoder`.
-
-        Returns:
-            Tensor: forwarded results with shape [num_query, bs, embed_dims].
-        """
-        x = super(DetrTransformerEncoder, self).forward(*args, **kwargs)
-        if self.post_norm is not None:
-            x = self.post_norm(x)
-        return x
 
 
 @TRANSFORMER_LAYER_SEQUENCE.register_module()

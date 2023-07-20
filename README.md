@@ -11,6 +11,7 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 
 ## News
 
+* ***[07/20/2023]*** Code for Co-DINO is released: **55.4 AP** with ResNet-50 and **60.7 AP** with Swin-L.
 * ***[07/14/2023]*** Co-DETR is accepted to ICCV 2023!
 * ***[07/12/2023]*** We finetune Co-DETR on LVIS and achieve the best results **without TTA**: **71.9 box AP** and **59.7 mask AP** on LVIS minival, **67.9 box AP** and **56.0 mask AP** on LVIS val. For instance segmentation, we report the performance of the auxiliary mask branch.
 * ***[07/03/2023]*** Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of <strike>65.6</strike> **66.0 AP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**. It is the **first model to exceed 66.0 AP on COCO test-dev**.
@@ -31,26 +32,28 @@ In this paper, we present a novel collaborative hybrid assignments training sche
 
 ## Model Zoo
 
-### Performance of improved Co-DETR with ResNet-50
+### Performance of Co-DETR with ResNet-50
 
 | Model  | Backbone | Epochs | Aug | Dataset | box AP | Config | Download |
 | ------ | -------- | ------ | --- | ------- | ------ | ------ | ----- |
-| Co-DINO | R50 | 12 | DETR | COCO | 52.1 | config | model |
-| Co-DINO | R50 | 12 | LSJ | COCO | 52.1 | config | model |
-| Co-DINO-9enc | R50 | 12 | LSJ | COCO | 52.6 | config | model |
-| Co-DINO | R50 | 36 | LSJ | COCO | 54.8 | config | model |
-| Co-DINO-9enc | R50 | 36 | LSJ | COCO | 55.4 | config | model |
+| Co-DINO | R50 | 12 | DETR | COCO | 52.1 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_r50_1x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | R50 | 12 | LSJ | COCO | 52.1 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_r50_1x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO-9enc | R50 | 12 | LSJ | COCO | 52.6 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_9encoder_lsj_r50_1x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | R50 | 36 | LSJ | COCO | 54.8 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_r50_3x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO-9enc | R50 | 36 | LSJ | COCO | 55.4 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_9encoder_lsj_r50_3x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 
 
-### Performance of improved Co-DETR with Swin-L
+### Performance of Co-DETR with Swin-L
 
 | Model  | Backbone | Epochs | Aug | Dataset | box AP | Config | Download |
 | ------ | -------- | ------ | --- | ------- | ------ | ------ | ----- |
-| Co-DINO | Swin-L | 12 | DETR | COCO | 58.9 | config | model |
-| Co-DINO | Swin-L | 36 | DETR | COCO | 60.0 | config | model |
-| Co-DINO | Swin-L | 12 | LSJ | COCO | 59.3 | config | model |
-| Co-DINO | Swin-L | 36 | LSJ | COCO | 60.7 | config | model |
-| Co-DINO | Swin-L | 36 | LSJ | LVIS | 56.2 | config | model |
+| Co-DINO | Swin-L | 12 | DETR | COCO | 58.9 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_1x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 24 | DETR | COCO | 59.8 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_2x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 36 | DETR | COCO | 60.0 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_3x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 12 | LSJ | COCO | 59.3 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_1x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 24 | LSJ | COCO | 60.4 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_2x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 36 | LSJ | COCO | 60.7 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_3x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 36 | LSJ | LVIS | 56.2 | config | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 
 ### Results on Deformable-DETR
 

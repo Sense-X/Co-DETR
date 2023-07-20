@@ -106,41 +106,28 @@ class CoStandardRoIHead(BaseRoIHead, BBoxTestMixin, MaskTestMixin):
 
             bbox_targets = bbox_results['bbox_targets']
             num_imgs = len(img_metas)
-
-            if False:
-                # This is the original implementation of our paper but may lead to runtime error.
-                num_proposals = bbox_targets[0].shape[0]
-                ori_proposals = bbox2roi([res.bboxes for res in sampling_results])
-                ori_proposals = ori_proposals[:, 1:].reshape(num_imgs, 512, 4)
-                ori_labels = bbox_targets[0].reshape(num_imgs, num_proposals // num_imgs)
-                ori_bbox_targets = bbox_targets[2].reshape(num_imgs, num_proposals // num_imgs, 4)
-                ori_bbox_feats = bbox_results['bbox_feats'].mean(-1).mean(-1)
-                ori_bbox_feats = ori_bbox_feats.reshape(num_imgs, num_proposals // num_imgs, -1)
-                pos_coords = (ori_proposals, ori_labels, ori_bbox_targets, ori_bbox_feats, 'rcnn')
-            else:
-                # The performance of this revised implementation may be different.
-                max_proposal = 2000
-                for res in sampling_results:
-                    max_proposal =  min(max_proposal, res.bboxes.shape[0])
-                ori_coords = bbox2roi([res.bboxes for res in sampling_results])
-                ori_proposals, ori_labels, ori_bbox_targets, ori_bbox_feats = [], [], [], []
-                for i in range(num_imgs):
-                    idx = (ori_coords[:,0]==i).nonzero().squeeze(1)
-                    idx = idx[:max_proposal]
-                    ori_proposal = ori_coords[idx][:, 1:].unsqueeze(0)
-                    ori_label = bbox_targets[0][idx].unsqueeze(0)
-                    ori_bbox_target = bbox_targets[2][idx].unsqueeze(0)
-                    ori_bbox_feat = bbox_results['bbox_feats'].mean(-1).mean(-1)
-                    ori_bbox_feat = ori_bbox_feat[idx].unsqueeze(0)
-                    ori_proposals.append(ori_proposal) 
-                    ori_labels.append(ori_label)
-                    ori_bbox_targets.append(ori_bbox_target)
-                    ori_bbox_feats.append(ori_bbox_feat)
-                ori_coords = torch.cat(ori_proposals, dim=0)
-                ori_labels = torch.cat(ori_labels, dim=0)
-                ori_bbox_targets = torch.cat(ori_bbox_targets, dim=0)
-                ori_bbox_feats = torch.cat(ori_bbox_feats, dim=0)
-                pos_coords = (ori_coords, ori_labels, ori_bbox_targets, ori_bbox_feats, 'rcnn')
+            max_proposal = 2000
+            for res in sampling_results:
+                max_proposal =  min(max_proposal, res.bboxes.shape[0])
+            ori_coords = bbox2roi([res.bboxes for res in sampling_results])
+            ori_proposals, ori_labels, ori_bbox_targets, ori_bbox_feats = [], [], [], []
+            for i in range(num_imgs):
+                idx = (ori_coords[:,0]==i).nonzero().squeeze(1)
+                idx = idx[:max_proposal]
+                ori_proposal = ori_coords[idx][:, 1:].unsqueeze(0)
+                ori_label = bbox_targets[0][idx].unsqueeze(0)
+                ori_bbox_target = bbox_targets[2][idx].unsqueeze(0)
+                ori_bbox_feat = bbox_results['bbox_feats'].mean(-1).mean(-1)
+                ori_bbox_feat = ori_bbox_feat[idx].unsqueeze(0)
+                ori_proposals.append(ori_proposal) 
+                ori_labels.append(ori_label)
+                ori_bbox_targets.append(ori_bbox_target)
+                ori_bbox_feats.append(ori_bbox_feat)
+            ori_coords = torch.cat(ori_proposals, dim=0)
+            ori_labels = torch.cat(ori_labels, dim=0)
+            ori_bbox_targets = torch.cat(ori_bbox_targets, dim=0)
+            ori_bbox_feats = torch.cat(ori_bbox_feats, dim=0)
+            pos_coords = (ori_coords, ori_labels, ori_bbox_targets, ori_bbox_feats, 'rcnn')
             losses.update(pos_coords=pos_coords)
 
         # mask head forward and loss
