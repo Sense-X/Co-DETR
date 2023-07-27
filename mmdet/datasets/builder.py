@@ -75,6 +75,8 @@ def build_dataset(cfg, default_args=None):
         cp_cfg = copy.deepcopy(cfg)
         cp_cfg['dataset'] = build_dataset(cp_cfg['dataset'])
         cp_cfg.pop('type')
+        cp_cfg.pop('ann_file')
+        cp_cfg.pop('img_prefix')
         dataset = MultiImageMixDataset(**cp_cfg)
     elif isinstance(cfg.get('ann_file'), (list, tuple)):
         dataset = _concat_dataset(cfg, default_args)
