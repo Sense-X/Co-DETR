@@ -694,7 +694,7 @@ class CoDeformDETRHead(DETRHead):
                 torch.zeros_like(gt_labels_list[i])
                 for i in range(len(img_metas))
             ]
-            enc_loss_cls, enc_losses_bbox, enc_losses_iou, _ = \
+            enc_loss_cls, enc_losses_bbox, enc_losses_iou = \
                 self.loss_single(enc_cls_scores, enc_bbox_preds,
                                  gt_bboxes_list, binary_labels_list,
                                  img_metas, gt_bboxes_ignore)
