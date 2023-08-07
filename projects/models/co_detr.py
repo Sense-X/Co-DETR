@@ -248,7 +248,7 @@ class CoDETR(BaseDetector):
         x = self.extract_feat(img, img_metas)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
-            x = results[-2]
+            x = results[-1]
         if proposals is None:
             proposal_list = self.rpn_head.simple_test_rpn(x, img_metas)
         else:
@@ -314,7 +314,7 @@ class CoDETR(BaseDetector):
         x = self.extract_feat(img, img_metas)
         if self.with_query_head:
             results = self.query_head.forward(x, img_metas)
-            x = results[-2]
+            x = results[-1]
         results_list = self.bbox_head[self.eval_index].simple_test(
             x, img_metas, rescale=rescale)
         bbox_results = [
@@ -327,7 +327,7 @@ class CoDETR(BaseDetector):
         """Test without augmentation."""
         assert self.eval_module in ['detr', 'one-stage', 'two-stage']
         if self.with_bbox and self.eval_module=='one-stage':
-            return self.simple_test_query_head(img, img_metas, proposals, rescale)
+            return self.simple_test_bbox_head(img, img_metas, proposals, rescale)
         if self.with_roi_head and self.eval_module=='two-stage':
             return self.simple_test_roi_head(img, img_metas, proposals, rescale)
         return self.simple_test_query_head(img, img_metas, proposals, rescale)
