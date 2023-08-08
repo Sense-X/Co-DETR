@@ -375,7 +375,7 @@ class CoDETR(BaseDetector):
                 and class labels of shape [N, num_det].
         """
         x = self.extract_feat(img)
-        outs = self.query_head(x)
+        outs = self.query_head.forward_onnx(x, img_metas)[:2]
         # get origin input shape to support onnx dynamic shape
 
         # get shape as tensor
@@ -390,7 +390,9 @@ class CoDETR(BaseDetector):
             # add dummy score_factor
             outs = (*outs, None)
         # TODO Can we change to `get_bboxes` when `onnx_export` fail
-        det_bboxes, det_labels = self.query_head.onnx_export(
-            *outs, img_metas, with_nms=with_nms)
+        # TODO support NMS
+        # det_bboxes, det_labels = self.query_head.onnx_export(
+        #     *outs, img_metas, with_nms=with_nms)
+        det_bboxes, det_labels = self.query_head.onnx_export(*outs, img_metas)
 
         return det_bboxes, det_labels
