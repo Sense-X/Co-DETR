@@ -5,5 +5,5 @@ _base_ = [
 model = dict(
     backbone=dict(drop_path_rate=0.6))
 
-lr_config = dict(policy='step', step=[20])
-runner = dict(type='EpochBasedRunner', max_epochs=24)
+lr_config = dict(policy='step', step=[30])
+runner = dict(type='EpochBasedRunner', max_epochs=36)
