@@ -107,13 +107,25 @@ class CoDETR(BaseDetector):
             x = self.neck(x)
         return x
 
+    # over-write `forward_dummy` because:
+    # the forward of bbox_head requires img_metas
     def forward_dummy(self, img):
         """Used for computing network flops.
 
         See `mmdetection/tools/analysis_tools/get_flops.py`
         """
+        warnings.warn('Warning! MultiheadAttention in DETR does not '
+                      'support flops computation! Do not use the '
+                      'results in your papers!')
+
+        batch_size, _, height, width = img.shape
+        dummy_img_metas = [
+            dict(
+                batch_input_shape=(height, width),
+                img_shape=(height, width, 3)) for _ in range(batch_size)
+        ]
         x = self.extract_feat(img)
-        outs = self.bbox_head(x)
+        outs = self.query_head(x, dummy_img_metas)
         return outs
 
     def forward_train(self,
