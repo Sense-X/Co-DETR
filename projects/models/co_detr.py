@@ -100,6 +100,11 @@ class CoDETR(BaseDetector):
         return ((hasattr(self, 'roi_head') and self.roi_head is not None and len(self.roi_head)>0)
                 or (hasattr(self, 'bbox_head') and self.bbox_head is not None and len(self.bbox_head)>0))
 
+    @property
+    def with_mask(self):
+        """bool: whether the detector has a mask head"""
+        return (hasattr(self, 'roi_head') and self.roi_head is not None and len(self.roi_head)>0 and self.roi_head[0].with_mask)
+    
     def extract_feat(self, img, img_metas=None):
         """Directly extract features from the backbone+neck."""
         x = self.backbone(img)
