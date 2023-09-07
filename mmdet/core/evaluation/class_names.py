@@ -1,6 +1,17 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import mmcv
+from enum import Enum
 
+class DatasetEnum(Enum):
+    VOC = 'voc'
+    IMAGENET_DET = 'imagenet_det'
+    IMAGENET_VID = 'imagenet_vid'
+    COCO = 'coco'
+    LVIS = 'lvis'
+    WIDER_FACE = 'wider_face'
+    CITYSCAPES = 'cityscapes'
+    OID_CHALLENGE = 'oid_challenge'
+    OID_V6 = 'oid_v6'
 
 def wider_face_classes():
     return ['face']
@@ -544,30 +555,40 @@ def oid_v6_classes():
 
 
 dataset_aliases = {
-    'voc': ['voc', 'pascal_voc', 'voc07', 'voc12'],
-    'imagenet_det': ['det', 'imagenet_det', 'ilsvrc_det'],
-    'imagenet_vid': ['vid', 'imagenet_vid', 'ilsvrc_vid'],
-    'coco': ['coco', 'mscoco', 'ms_coco'],
-    'lvis': ['lvis'],
-    'wider_face': ['WIDERFaceDataset', 'wider_face', 'WIDERFace'],
-    'cityscapes': ['cityscapes'],
-    'oid_challenge': ['oid_challenge', 'openimages_challenge'],
-    'oid_v6': ['oid_v6', 'openimages_v6']
+    DatasetEnum.VOC: ['voc', 'pascal_voc', 'voc07', 'voc12'],
+    DatasetEnum.IMAGENET_DET: ['det', 'imagenet_det', 'ilsvrc_det'],
+    DatasetEnum.IMAGENET_VID: ['vid', 'imagenet_vid', 'ilsvrc_vid'],
+    DatasetEnum.COCO: ['coco', 'mscoco', 'ms_coco'],
+    DatasetEnum.LVIS: ['lvis'],
+    DatasetEnum.WIDER_FACE: ['WIDERFaceDataset', 'wider_face', 'WIDERFace'],
+    DatasetEnum.CITYSCAPES: ['cityscapes'],
+    DatasetEnum.OID_CHALLENGE: ['oid_challenge', 'openimages_challenge'],
+    DatasetEnum.OID_V6: ['oid_v6', 'openimages_v6']
 }
 
+# def get_classes(dataset):
+#     """Get class names of a dataset."""
+#     alias2name = {}
+#     for name, aliases in dataset_aliases.items():
+#         for alias in aliases:
+#             alias2name[alias] = name
+
+#     if mmcv.is_str(dataset):
+#         if dataset in alias2name:
+#             labels = eval(alias2name[dataset] + '_classes()')
+#         else:
+#             raise ValueError(f'Unrecognized dataset: {dataset}')
+#     else:
+#         raise TypeError(f'dataset must a str, but got {type(dataset)}')
+#     return labels
 
 def get_classes(dataset):
     """Get class names of a dataset."""
-    alias2name = {}
-    for name, aliases in dataset_aliases.items():
-        for alias in aliases:
-            alias2name[alias] = name
-
-    if mmcv.is_str(dataset):
-        if dataset in alias2name:
-            labels = eval(alias2name[dataset] + '_classes()')
+    if isinstance(dataset, DatasetEnum):
+        if dataset in dataset_aliases:
+            labels = eval(dataset_aliases[dataset][0] + '_classes()')
         else:
             raise ValueError(f'Unrecognized dataset: {dataset}')
     else:
-        raise TypeError(f'dataset must a str, but got {type(dataset)}')
+        raise TypeError(f'dataset must be a DatasetEnum member, but got {type(dataset)}')
     return labels
