@@ -3,7 +3,7 @@ _base_ = [
 ]
 
 load_from = 'models/co_dino_5scale_swin_large_22e_o365.pth'
-pretrained = 'models/swin_large_patch4_window12_384_22k.pth'
+pretrained = None
 # model settings
 model = dict(
     backbone=dict(

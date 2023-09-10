@@ -35,9 +35,11 @@ In this paper, we present a novel collaborative hybrid assignments training sche
 
 ### Objects365 pre-trained Co-DETR
 
+Note: the inconsistent pre-training and fine-tuning augmentation settings (DETR and LSJ aug) for the Swin-L model on LVIS dataset cause a slight performance drop. 
 | Model  | Backbone | Epochs | Aug | Dataset | box AP (val) | Config | Download |
 | ------ | -------- | ------ | --- | ------- | ------------ | ------ | ----- |
 | Co-DINO | Swin-L | 16 | DETR | COCO | 64.1 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tococo.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 16 | LSJ | LVIS | 64.4 | [config (test only)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tococo.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 
 ### Co-DETR with ResNet-50
 
@@ -60,7 +62,7 @@ In this paper, we present a novel collaborative hybrid assignments training sche
 | Co-DINO | Swin-L | 12 | LSJ | COCO | 59.3 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_1x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 | Co-DINO | Swin-L | 24 | LSJ | COCO | 60.4 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_2x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 | Co-DINO | Swin-L | 36 | LSJ | COCO | 60.7 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_3x_coco.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
-| Co-DINO | Swin-L | 36 | LSJ | LVIS | 56.9 | config | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 36 | LSJ | LVIS | 56.9 | [config (test only)]() | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 
 ### Co-Deformable-DETR
 
@@ -84,14 +86,16 @@ The source code of MMdetection has been included in this repo and you only need 
 We test our models under ```python=3.7.11,pytorch=1.11.0,cuda=11.3```. Other versions may not be compatible. 
 
 ### Data
-The COCO dataset should be organized as:
+The COCO dataset and LVIS dataset should be organized as:
 ```
 data/
   ├── train2017/
   ├── val2017/
   └── annotations/
   	├── instances_train2017.json
-  	└── instances_val2017.json
+  	├── instances_val2017.json
+  	├── lvis_v1_train.json
+  	└── lvis_v1_val.json
 ```
 
 ### Training
