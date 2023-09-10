@@ -11,7 +11,7 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 
 ## News
 
-* ***[09/10/2023]*** We release LVIS inference configs and a stronger LVIS detector that achieves **64.4 box AP**.
+* ***[09/10/2023]*** We release LVIS inference configs and a stronger LVIS detector that achieves **64.5 box AP**.
 * ***[08/21/2023]*** Our O365 pre-trained Co-DETR with Swin-L achieves **64.8 AP** on COCO test-dev. The config and weights are released.
 * ***[07/20/2023]*** Code for Co-DINO is released: **55.4 AP** with ResNet-50 and **60.7 AP** with Swin-L.
 * ***[07/14/2023]*** Co-DETR is accepted to ICCV 2023!
@@ -40,7 +40,7 @@ Note: the inconsistent pre-training and fine-tuning augmentation settings (DETR 
 | Model  | Backbone | Epochs | Aug | Dataset | box AP (val) | Config | Download |
 | ------ | -------- | ------ | --- | ------- | ------------ | ------ | ----- |
 | Co-DINO | Swin-L | 16 | DETR | COCO | 64.1 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tococo.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
-| Co-DINO | Swin-L | 16 | LSJ | LVIS | 64.4 | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tolvis.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | Swin-L | 16 | LSJ | LVIS | 64.5 | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tolvis.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 
 ### Co-DETR with ResNet-50
 
