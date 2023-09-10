@@ -389,7 +389,8 @@ class LVISV05Dataset(CocoDataset):
             if metric not in result_files:
                 raise KeyError('{} is not in results'.format(metric))
             try:
-                lvis_dt = LVISResults(lvis_gt, result_files[metric])
+                # NOTE: We only limit the max_dets in test config.
+                lvis_dt = LVISResults(lvis_gt, result_files[metric], max_dets=1000)
             except IndexError:
                 print_log(
                     'The testing results of the whole dataset is empty.',

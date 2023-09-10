@@ -9,14 +9,14 @@ from mmcv.ops import RoIPool
 from mmcv.parallel import collate, scatter
 from mmcv.runner import load_checkpoint
 
-from mmdet.core import get_classes
+from mmdet.core import get_classes, DatasetEnum
 from mmdet.datasets import replace_ImageToTensor
 from mmdet.datasets.pipelines import Compose
 from mmdet.models import build_detector
 from projects import *
 
 
-def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
+def init_detector(config, checkpoint=None, dataset=DatasetEnum.COCO, device='cuda:0', cfg_options=None):
     """Initialize a detector from config file.
 
     Args:
@@ -49,9 +49,9 @@ def init_detector(config, checkpoint=None, device='cuda:0', cfg_options=None):
             model.CLASSES = checkpoint['meta']['CLASSES']
         else:
             warnings.simplefilter('once')
-            warnings.warn('Class names are not saved in the checkpoint\'s '
-                          'meta data, use COCO classes by default.')
-            model.CLASSES = get_classes('coco')
+            warnings.warn(f'Class names are not saved in the checkpoint\'s '
+                          f'meta data, use {dataset.value} classes.')
+            model.CLASSES = get_classes(dataset)
     model.cfg = config  # save the config in the model for convenience
     model.to(device)
     model.eval()
