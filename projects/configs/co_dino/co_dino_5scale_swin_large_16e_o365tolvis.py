@@ -1,5 +1,5 @@
 _base_ = [
-    'co_dino_5scale_swin_large_3x_lvis.py'
+    'co_dino_5scale_lsj_swin_large_3x_lvis.py'
 ]
 
 load_from = 'models/co_dino_5scale_swin_large_22e_o365.pth'
