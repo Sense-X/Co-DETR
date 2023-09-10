@@ -83,10 +83,21 @@ test_pipeline = [
             dict(type='Collect', keys=['img'])
         ])
 ]
+dataset_type = 'LVISV1Dataset'
+data_root = 'data/lvis_v1/'
+img_data_root = 'data/coco/'
 data = dict(
     samples_per_gpu=1,
     workers_per_gpu=1,
-    train=dict(filter_empty_gt=False, pipeline=train_pipeline),
+    train=dict(
+        type='MultiImageMixDataset',
+        dataset=dict(
+            type=dataset_type,
+            ann_file=data_root + 'annotations/lvis_v1_train.json',
+            img_prefix=img_data_root,
+            filter_empty_gt=False,
+            pipeline=load_pipeline),
+        pipeline=train_pipeline),
     val=dict(pipeline=test_pipeline),
     test=dict(pipeline=test_pipeline))
 
