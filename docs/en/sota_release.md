@@ -14,7 +14,7 @@ The Co-DETR model on the COCO dataset will be released in the near future.
 | Model  | Backbone | Aug | Dataset | box AP (val) | box AP (minival) | box AP (test-dev) |
 | ------ | -------- | --- | ------- | ------------ | ---------------- | ----------------- |
 | Co-DINO | ViT-L | DETR | COCO | 65.9 | - | 66.0 |
-| Co-DINO | ViT-L | LSJ | LVIS | 67.9 | 71.9 | - |
+| Co-DINO | ViT-L | LSJ | LVIS | 68.0 | 72.0 | - |
 
 ## Cite Co-DETR
 

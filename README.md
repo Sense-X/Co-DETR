@@ -16,7 +16,7 @@ This repo is the official implementation of ["DETRs with Collaborative Hybrid As
 * ***[08/21/2023]*** Our O365 pre-trained Co-DETR with Swin-L achieves **64.8 AP** on COCO test-dev. The config and weights are released.
 * ***[07/20/2023]*** Code for Co-DINO is released: **55.4 AP** with ResNet-50 and **60.7 AP** with Swin-L.
 * ***[07/14/2023]*** Co-DETR is accepted to ICCV 2023!
-* ***[07/12/2023]*** We finetune Co-DETR on LVIS and achieve the best results **without TTA**: **71.9 box AP** and **59.7 mask AP** on LVIS minival, **67.9 box AP** and **56.0 mask AP** on LVIS val. For instance segmentation, we report the performance of the auxiliary mask branch.
+* ***[07/12/2023]*** We finetune Co-DETR on LVIS and achieve the best results **without TTA**: **72.0 box AP** and **59.7 mask AP** on LVIS minival, **68.0 box AP** and **56.0 mask AP** on LVIS val. For instance segmentation, we report the performance of the auxiliary mask branch.
 * ***[07/03/2023]*** Co-DETR with [ViT-L](https://github.com/baaivision/EVA/tree/master/EVA-02) **(304M parameters)** sets a new record of <strike>65.6</strike> **66.0 AP** on COCO test-dev, surpassing the previous best model [InternImage-G](https://github.com/OpenGVLab/InternImage) **(~3000M parameters)**. It is the **first model to exceed 66.0 AP on COCO test-dev**.
 * ***[07/03/2023]*** Code for Co-Deformable-DETR is released.
 * ***[11/19/2022]*** We achieved 64.4 AP on COCO minival and 64.5 AP on COCO test-dev with only ImageNet-1K as pre-training data. Codes will be available soon.
@@ -42,6 +42,7 @@ Note: the inconsistent pre-training and fine-tuning augmentation settings (DETR 
 | ------ | -------- | ------ | --- | ------- | ------------ | ------ | ----- |
 | Co-DINO | Swin-L | 16 | DETR | COCO | 64.1 | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tococo.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
 | Co-DINO | Swin-L | 16 | LSJ | LVIS | 64.5 | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_16e_o365tolvis.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | ViT-L | 16 | LSJ | LVIS | 68.0 | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/docs/en/sota_release.md) | [model](https://github.com/Sense-X/Co-DETR/blob/main/docs/en/sota_release.md) |
 
 ### Co-DETR with ResNet-50
 
