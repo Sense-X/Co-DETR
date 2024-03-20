@@ -30,6 +30,10 @@ RUN conda clean --all
 RUN pip install openmim
 RUN pip install timm
 RUN mim install mmdet==2.25.3
+RUN pip install fairscale==0.4.13
+RUN pip install scipy==1.10.1
+
+# Install etc.
+RUN pip install yapf==0.40.1
 
 WORKDIR /Co-DETR
-
