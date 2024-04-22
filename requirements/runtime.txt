@@ -3,3 +3,6 @@ numpy
 pycocotools
 six
 terminaltables
+fairscale
+scipy
+yapf
