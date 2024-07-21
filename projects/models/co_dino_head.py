@@ -77,7 +77,10 @@ class CoDINOHead(CoDeformDETRHead):
             loss_inputs = outs + (gt_bboxes, gt_labels, img_metas, dn_meta)
         losses = self.loss(*loss_inputs, gt_bboxes_ignore=gt_bboxes_ignore)
         enc_outputs = outs[-1]
-        return losses, enc_outputs
+        with torch.no_grad():
+            tmp_results_list = self.get_bboxes(*outs, img_metas=img_metas, rescale=False, with_nms=False)
+            results_list = [res[0] for res in tmp_results_list]
+        return losses, enc_outputs, results_list
 
     def forward(self,
                 mlvl_feats,

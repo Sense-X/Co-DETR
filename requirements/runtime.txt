@@ -6,3 +6,6 @@ terminaltables
 fairscale
 scipy
 yapf
+timm
+fvcore
+tensorboard

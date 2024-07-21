@@ -2,7 +2,7 @@
 import numpy as np
 import torch
 import torch.nn as nn
-from mmcv.cnn import Conv2d, Linear, MaxPool2d
+from mmcv.cnn import Conv2d, Linear, MaxPool2d, ConvModule
 from mmcv.runner import BaseModule, force_fp32
 from torch.nn.modules.utils import _pair
 
@@ -24,14 +24,15 @@ class MaskIoUHead(BaseModule):
                  conv_out_channels=256,
                  fc_out_channels=1024,
                  num_classes=80,
+                 score_use_sigmoid=False,
+                 norm_cfg=None,
                  loss_iou=dict(type='MSELoss', loss_weight=0.5),
                  init_cfg=[
-                     dict(type='Kaiming', override=dict(name='convs')),
                      dict(type='Caffe2Xavier', override=dict(name='fcs')),
                      dict(
-                         type='Normal',
-                         std=0.01,
-                         override=dict(name='fc_mask_iou'))
+                        type='Normal',
+                        std=0.01,
+                        override=dict(name='fc_mask_iou'))
                  ]):
         super(MaskIoUHead, self).__init__(init_cfg)
         self.in_channels = in_channels
@@ -39,6 +40,8 @@ class MaskIoUHead(BaseModule):
         self.fc_out_channels = fc_out_channels
         self.num_classes = num_classes
         self.fp16_enabled = False
+        self.norm_cfg = norm_cfg
+        self.score_use_sigmoid = score_use_sigmoid
 
         self.convs = nn.ModuleList()
         for i in range(num_convs):
@@ -49,12 +52,13 @@ class MaskIoUHead(BaseModule):
                 in_channels = self.conv_out_channels
             stride = 2 if i == num_convs - 1 else 1
             self.convs.append(
-                Conv2d(
+                ConvModule(
                     in_channels,
                     self.conv_out_channels,
                     3,
                     stride=stride,
-                    padding=1))
+                    padding=1,
+                    norm_cfg=norm_cfg))
 
         roi_feat_size = _pair(roi_feat_size)
         pooled_area = (roi_feat_size[0] // 2) * (roi_feat_size[1] // 2)
@@ -70,6 +74,9 @@ class MaskIoUHead(BaseModule):
         self.max_pool = MaxPool2d(2, 2)
         self.loss_iou = build_loss(loss_iou)
 
+    def init_weights(self):
+        super(MaskIoUHead, self).init_weights()
+
     def forward(self, mask_feat, mask_pred):
         mask_pred = mask_pred.sigmoid()
         mask_pred_pooled = self.max_pool(mask_pred.unsqueeze(1))
@@ -82,7 +89,10 @@ class MaskIoUHead(BaseModule):
         for fc in self.fcs:
             x = self.relu(fc(x))
         mask_iou = self.fc_mask_iou(x)
-        return mask_iou
+        if self.score_use_sigmoid:
+            return mask_iou.sigmoid()
+        else:
+            return mask_iou
 
     @force_fp32(apply_to=('mask_iou_pred', ))
     def loss(self, mask_iou_pred, mask_iou_targets):
@@ -131,7 +141,7 @@ class MaskIoUHead(BaseModule):
         area_ratios = torch.cat(list(area_ratios))
         assert mask_targets.size(0) == area_ratios.size(0)
 
-        mask_pred = (mask_pred > rcnn_train_cfg.mask_thr_binary).float()
+        mask_pred = (mask_pred.sigmoid() > rcnn_train_cfg.mask_thr_binary).float()
         mask_pred_areas = mask_pred.sum((-1, -2))
 
         # mask_pred and mask_targets are binary maps
@@ -171,7 +181,7 @@ class MaskIoUHead(BaseModule):
         return area_ratios
 
     @force_fp32(apply_to=('mask_iou_pred', ))
-    def get_mask_scores(self, mask_iou_pred, det_bboxes, det_labels):
+    def get_mask_scores(self, mask_iou_pred, det_bboxes, det_labels, return_score=False):
         """Get the mask scores.
 
         mask_score = bbox_score * mask_iou
@@ -180,4 +190,6 @@ class MaskIoUHead(BaseModule):
         mask_scores = mask_iou_pred[inds, det_labels] * det_bboxes[inds, -1]
         mask_scores = mask_scores.cpu().numpy()
         det_labels = det_labels.cpu().numpy()
+        if return_score:
+            return mask_scores
         return [mask_scores[det_labels == i] for i in range(self.num_classes)]

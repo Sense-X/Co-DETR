@@ -2,10 +2,12 @@ import warnings
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from mmdet.core import bbox2result
-from mmdet.models.builder import DETECTORS, build_backbone, build_head, build_neck
+from mmdet.core import bbox2result, bbox2roi, build_assigner, build_sampler
+from mmdet.models.builder import DETECTORS, build_backbone, build_head, build_neck, build_roi_extractor
 from mmdet.models.detectors.base import BaseDetector
+from mmdet.models.losses.cross_entropy_loss import generate_block_target
 
 
 @DETECTORS.register_module()
@@ -14,6 +16,9 @@ class CoDETR(BaseDetector):
                  backbone,
                  neck=None,
                  query_head=None,
+                 mask_roi_extractor=None,
+                 mask_head=None,
+                 mask_iou_head=None,                 
                  rpn_head=None,
                  roi_head=[None],
                  bbox_head=[None],
@@ -45,6 +50,24 @@ class CoDETR(BaseDetector):
             self.query_head = build_head(query_head)
             self.query_head.init_weights()
             head_idx += 1
+
+        if mask_head is not None:
+            """Initialize ``mask_head``"""
+            self.mask_roi_extractor = build_roi_extractor(mask_roi_extractor)
+            self.mask_head = build_head(mask_head)
+            rcnn_train_cfg = train_cfg[head_idx] if (train_cfg and train_cfg[head_idx] is not None) else None
+            self.rcnn_train_cfg = rcnn_train_cfg
+            self.rcnn_test_cfg = test_cfg[head_idx]
+            if rcnn_train_cfg is not None:
+                assigner = rcnn_train_cfg.assigner
+                sampler = rcnn_train_cfg.sampler
+                self.bbox_assigner = build_assigner(assigner)
+                self.bbox_sampler = build_sampler(
+                    sampler, context=self)
+            head_idx += 1
+
+        if mask_iou_head is not None:
+            self.mask_iou_head = build_head(mask_iou_head)
 
         if rpn_head is not None:
             rpn_train_cfg = train_cfg[head_idx].rpn if (train_cfg is not None and train_cfg[head_idx] is not None) else None
@@ -133,6 +156,41 @@ class CoDETR(BaseDetector):
         outs = self.query_head(x, dummy_img_metas)
         return outs
 
+    def _mask_forward_train(self, x, sampling_results, gt_masks, img_metas):
+        """Run forward function and calculate loss for mask head in training."""
+
+        pos_bboxes = [res.pos_bboxes for res in sampling_results]
+        pos_labels = [res.pos_gt_labels for res in sampling_results]
+        pos_assigned_gt_inds = [res.pos_assigned_gt_inds for res in sampling_results]
+        pos_rois = bbox2roi(pos_bboxes)
+
+        mask_results = self._mask_forward(x, pos_rois, torch.cat(pos_labels))
+        stage_mask_targets = self.mask_head.get_targets(pos_bboxes, pos_assigned_gt_inds, gt_masks)
+        loss_mask = self.mask_head.loss(mask_results['stage_instance_preds'], mask_results['hidden_states'], stage_mask_targets)
+        mask_results.update(loss_mask=loss_mask)
+
+        if hasattr(self, "mask_iou_head"):
+            # mask iou head forward and loss
+            pos_mask_pred = mask_results['stage_instance_preds'][1].squeeze(1)
+            mask_iou_pred = self.mask_iou_head(mask_results['mask_feats'],
+                                            pos_mask_pred)
+            pos_mask_iou_pred = mask_iou_pred[range(mask_iou_pred.size(0)),
+                                            torch.cat(pos_labels)]
+            mask_iou_targets = self.mask_iou_head.get_targets(
+                sampling_results, gt_masks, pos_mask_pred,
+                stage_mask_targets[1], self.rcnn_train_cfg)
+            loss_mask_iou = self.mask_iou_head.loss(pos_mask_iou_pred,
+                                                    mask_iou_targets)
+            mask_results.update(loss_mask_iou=loss_mask_iou)
+            
+        return mask_results
+
+    def _mask_forward(self, x, rois, roi_labels):
+        """Mask head forward function used in both training and testing."""
+        ins_feats = self.mask_roi_extractor(x[:self.mask_roi_extractor.num_inputs], rois)
+        stage_instance_preds, hidden_states = self.mask_head(ins_feats, x[0], rois, roi_labels)
+        return dict(stage_instance_preds=stage_instance_preds, hidden_states=hidden_states, mask_feats=ins_feats)
+    
     def forward_train(self,
                       img,
                       img_metas,
@@ -193,7 +251,7 @@ class CoDETR(BaseDetector):
 
         # DETR encoder and decoder forward
         if self.with_query_head:
-            bbox_losses, x = self.query_head.forward_train(x, img_metas, gt_bboxes,
+            bbox_losses, x, results_list = self.query_head.forward_train(x, img_metas, gt_bboxes,
                                                           gt_labels, gt_bboxes_ignore)
             losses.update(bbox_losses)
             
@@ -213,6 +271,28 @@ class CoDETR(BaseDetector):
             losses.update(rpn_losses)
         else:
             proposal_list = proposals
+
+        if hasattr(self, "mask_head"):
+            num_imgs = len(img_metas)
+            if gt_bboxes_ignore is None:
+                gt_bboxes_ignore = [None for _ in range(num_imgs)]
+            sampling_results = []
+            for i in range(num_imgs):
+                assign_result = self.bbox_assigner.assign(
+                    results_list[i], gt_bboxes[i], gt_bboxes_ignore[i],
+                    gt_labels[i])
+                sampling_result = self.bbox_sampler.sample(
+                    assign_result,
+                    results_list[i],
+                    gt_bboxes[i],
+                    gt_labels[i],
+                    feats=[lvl_feat[i][None] for lvl_feat in x])
+                sampling_results.append(sampling_result)
+            mask_results = self._mask_forward_train(x, sampling_results,
+                                                    gt_masks, img_metas)
+            losses.update(mask_results['loss_mask'])
+            if 'loss_mask_iou' in mask_results:
+                losses.update(mask_results['loss_mask_iou'])
 
         positive_coords = []
         for i in range(len(self.roi_head)):
@@ -236,7 +316,7 @@ class CoDETR(BaseDetector):
                 positive_coords.append(pos_coords)
             else:
                 if 'pos_coords' in bbox_losses.keys():
-                    tmp = bbox_losses.pop('pos_coords')          
+                    tmp = bbox_losses.pop('pos_coords')
             bbox_losses = upd_loss(bbox_losses, idx=i+len(self.roi_head))
             losses.update(bbox_losses)
 
@@ -245,7 +325,7 @@ class CoDETR(BaseDetector):
                 bbox_losses = self.query_head.forward_train_aux(x, img_metas, gt_bboxes,
                                                             gt_labels, gt_bboxes_ignore, positive_coords[i], i)
                 bbox_losses = upd_loss(bbox_losses, idx=i)
-                losses.update(bbox_losses)                    
+                losses.update(bbox_losses)
 
         return losses
 
@@ -304,6 +384,16 @@ class CoDETR(BaseDetector):
             bbox2result(det_bboxes, det_labels, self.query_head.num_classes)
             for det_bboxes, det_labels in results_list
         ]
+        if hasattr(self, "mask_head"):
+            det_bboxes, det_labels = [], []
+            for det_bbox, det_label in results_list:
+                det_bboxes.append(det_bbox)
+                det_labels.append(det_label)
+            det_bboxes = torch.stack(det_bboxes, dim=0)
+            det_labels = torch.stack(det_labels, dim=0)            
+            segm_results = self.simple_test_mask(
+                x, img_metas, det_bboxes, det_labels, rescale=rescale)
+            return list(zip(bbox_results, segm_results))        
         return bbox_results
 
     def simple_test_bbox_head(self, img, img_metas, proposals=None, rescale=False):
@@ -340,6 +430,78 @@ class CoDETR(BaseDetector):
         ]
         return bbox_results
 
+    def simple_test_mask(self,
+                         x,
+                         img_metas,
+                         det_bboxes,
+                         det_labels,
+                         rescale=False):
+        """Obtain mask prediction without augmentation."""
+        segm_results = []
+        mask_scores = []
+        for img_idx in range(len(img_metas)):
+            ori_shape = img_metas[img_idx]['ori_shape']
+            scale_factor = img_metas[img_idx]['scale_factor']
+            det_bboxes = det_bboxes[img_idx]
+            det_labels = det_labels[img_idx]            
+            if det_bboxes.shape[0] == 0:
+                segm_result = [[] for _ in range(self.mask_head.stage_num_classes[0])]
+                mask_score = [[] for _ in range(self.mask_head.stage_num_classes[0])]
+            else:
+                # if det_bboxes is rescaled to the original image size, we need to
+                # rescale it back to the testing scale to obtain RoIs.
+                if rescale and not isinstance(scale_factor, float):
+                    scale_factor = torch.from_numpy(scale_factor).to(det_bboxes.device)
+                _bboxes = det_bboxes[:, :4] * scale_factor if rescale else det_bboxes
+                mask_rois = bbox2roi([_bboxes])
+
+                interval = 150  # to avoid memory overflow
+                segm_result = [[] for _ in range(self.mask_head.stage_num_classes[0])]
+                mask_score = [[] for _ in range(self.mask_head.stage_num_classes[0])]
+                for i in range(0, det_labels.shape[0], interval):
+                    mask_results = self._mask_forward(x, mask_rois[i: i + interval], det_labels[i: i + interval])
+
+                    # mask scoring
+                    if hasattr(self, "mask_iou_head"):
+                        # get mask scores with mask iou head
+                        mask_feats = mask_results['mask_feats']
+                        mask_pred = mask_results['stage_instance_preds'][1].squeeze(1)
+                        mask_iou_pred = self.mask_iou_head(
+                            mask_feats, mask_pred)
+                        chunk_mask_score = self.mask_iou_head.get_mask_scores(
+                            mask_iou_pred, det_bboxes[i: i + interval], det_labels[i: i + interval], return_score=True)
+
+                    # refine instance masks from stage 1
+                    stage_instance_preds = mask_results['stage_instance_preds'][1:]
+                    for idx in range(len(stage_instance_preds) - 1):
+                        instance_pred = stage_instance_preds[idx].squeeze(1).sigmoid() >= 0.5
+                        non_boundary_mask = (generate_block_target(instance_pred, boundary_width=1) != 1).unsqueeze(1)
+                        non_boundary_mask = F.interpolate(
+                            non_boundary_mask.float(),
+                            stage_instance_preds[idx + 1].shape[-2:], mode='bilinear', align_corners=True) >= 0.5
+                        pre_pred = F.interpolate(
+                            stage_instance_preds[idx],
+                            stage_instance_preds[idx + 1].shape[-2:], mode='bilinear', align_corners=True)
+                        stage_instance_preds[idx + 1][non_boundary_mask] = pre_pred[non_boundary_mask]
+                    instance_pred = stage_instance_preds[-1]
+
+                    chunk_segm_result = self.mask_head.get_seg_masks(
+                        instance_pred, _bboxes[i: i + interval], det_labels[i: i + interval],
+                        self.rcnn_test_cfg, ori_shape, scale_factor, rescale)
+
+                    if hasattr(self, "mask_iou_head"):
+                        for c, segm, score in zip(det_labels[i: i + interval], chunk_segm_result, chunk_mask_score):
+                            segm_result[c].append(segm)     
+                            mask_score[c].append(score)                   
+                    else:
+                        for c, segm in zip(det_labels[i: i + interval], chunk_segm_result):
+                            segm_result[c].append(segm)
+            segm_results.append(segm_result)
+            mask_scores.append(mask_score)
+        if hasattr(self, "mask_iou_head"):
+            return list(zip(segm_results, mask_scores))
+        return segm_results
+    
     def simple_test(self, img, img_metas, proposals=None, rescale=False):
         """Test without augmentation."""
         assert self.eval_module in ['detr', 'one-stage', 'two-stage']
