@@ -251,8 +251,11 @@ class CoDETR(BaseDetector):
 
         # DETR encoder and decoder forward
         if self.with_query_head:
-            bbox_losses, x, results_list = self.query_head.forward_train(x, img_metas, gt_bboxes,
+            detr_forward_results = self.query_head.forward_train(x, img_metas, gt_bboxes,
                                                           gt_labels, gt_bboxes_ignore)
+            bbox_losses, x = detr_forward_results[:2]
+            if len(detr_forward_results)==3:
+                results_list = detr_forward_results[2]
             losses.update(bbox_losses)
             
 
