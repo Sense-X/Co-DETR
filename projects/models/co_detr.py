@@ -381,8 +381,8 @@ class CoDETR(BaseDetector):
                 img_metas[i]['img_shape'] = [input_img_h, input_img_w, 3]
 
         x = self.extract_feat(img, img_metas)
-        results_list = self.query_head.simple_test(
-            x, img_metas, rescale=rescale)
+        results_list, x = self.query_head.simple_test(
+            x, img_metas, rescale=rescale, return_encoder_output=True)
         bbox_results = [
             bbox2result(det_bboxes, det_labels, self.query_head.num_classes)
             for det_bboxes, det_labels in results_list

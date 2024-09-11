@@ -1076,7 +1076,7 @@ class CoDeformDETRHead(DETRHead):
         """
         raise ValueError('Not implemented')
 
-    def simple_test_bboxes(self, feats, img_metas, rescale=False):
+    def simple_test_bboxes(self, feats, img_metas, rescale=False, return_encoder_output=False):
         """Test det bboxes without test-time augmentation.
 
         Args:
@@ -1098,4 +1098,25 @@ class CoDeformDETRHead(DETRHead):
         with_nms = True if with_nms is not None else False
         outs = self.forward(feats, img_metas)
         results_list = self.get_bboxes(*outs, img_metas, rescale=rescale, with_nms=with_nms)
+        if return_encoder_output:
+            return results_list, outs[-1]
         return results_list
+
+    def simple_test(self, feats, img_metas, rescale=False, return_encoder_output=False):
+        """Test function without test-time augmentation.
+
+        Args:
+            feats (tuple[torch.Tensor]): Multi-level features from the
+                upstream network, each is a 4D-tensor.
+            img_metas (list[dict]): List of image information.
+            rescale (bool, optional): Whether to rescale the results.
+                Defaults to False.
+
+        Returns:
+            list[tuple[Tensor, Tensor]]: Each item in result_list is 2-tuple.
+                The first item is ``bboxes`` with shape (n, 5),
+                where 5 represent (tl_x, tl_y, br_x, br_y, score).
+                The shape of the second tensor in the tuple is ``labels``
+                with shape (n, ).
+        """
+        return self.simple_test_bboxes(feats, img_metas, rescale=rescale, return_encoder_output=return_encoder_output)
