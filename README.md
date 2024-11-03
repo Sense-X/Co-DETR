@@ -7,10 +7,11 @@
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/detrs-with-collaborative-hybrid-assignments/instance-segmentation-on-lvis-v1-0-val)](https://paperswithcode.com/sota/instance-segmentation-on-lvis-v1-0-val?p=detrs-with-collaborative-hybrid-assignments)
 
 
-[[📖 Paper](https://arxiv.org/pdf/2211.12860.pdf)] [[🤗 Huggingface Model](https://huggingface.co/zongzhuofan)]
+[[📖 Paper](https://arxiv.org/pdf/2211.12860.pdf)] [[🤗 Hugging Face Model](https://huggingface.co/zongzhuofan)]
 
 ## News
 
+* ***[07/21/2024]*** Check out our Co-DETR detection and segmentation checkpoints, fine-tuned on COCO and LVIS, now available on [Hugging Face](https://huggingface.co/zongzhuofan). We've achieved new state-of-the-art performance in instance segmentation!
 * ***[04/22/2024]*** We release a new MLLM framework [MoVA](https://github.com/TempleX98/MoVA), which adopts Co-DETR as the vision and achieves state-of-the-art performance on multimodal benchmarks.
 * ***[10/19/2023]*** Our SOTA model Co-DETR w/ ViT-L is released now. Please refer to [our huggingface page](https://huggingface.co/zongzhuofan) for more details.
 * ***[09/10/2023]*** We release LVIS inference configs and a stronger LVIS detector that achieves **64.5 box AP**.

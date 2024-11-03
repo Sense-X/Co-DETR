@@ -54,8 +54,51 @@ model = dict(
             target_means=[.0, .0, .0, .0],
             target_stds=[1.0, 1.0, 1.0, 1.0]),
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0*num_dec_layer*lambda_2),
-        loss_bbox=dict(type='L1Loss', loss_weight=1.0*num_dec_layer*lambda_2)),
+            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0 * num_dec_layer * lambda_2),
+        loss_bbox=dict(type='L1Loss', loss_weight=1.0 * num_dec_layer * lambda_2)),
+    mask_roi_extractor=dict(
+        type='SingleRoIExtractor',
+        roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
+        out_channels=256,
+        featmap_strides=[4, 8, 16, 32, 64],
+        finest_scale=56),
+    mask_head=dict(
+        type='SimpleRefineMaskHead',
+        num_convs_instance=1,
+        num_convs_semantic=2,
+        conv_in_channels_instance=256,
+        conv_in_channels_semantic=256,
+        conv_kernel_size_instance=3,
+        conv_kernel_size_semantic=3,
+        conv_out_channels_instance=256,
+        conv_out_channels_semantic=256,
+        conv_cfg=None,
+        norm_cfg=dict(type='LN2d'),
+        fusion_type='MultiBranchFusionAvg', # slighly better than w/o global avg feature
+        dilations=[1, 3, 5],
+        semantic_out_stride=4,
+        stage_num_classes=[80, 80, 80, 1],  # use class-agnostic classifier in the last stage
+        stage_sup_size=[14, 28, 56, 112],
+        pre_upsample_last_stage=False,      # compute logits and then upsample them in the last stage
+        upsample_cfg=dict(type='bilinear', scale_factor=2),
+        loss_weight=1.33 * num_dec_layer * lambda_2,
+        loss_cfg=dict(
+            type='BARCrossEntropyLoss',
+            stage_instance_loss_weight=[0.5, 0.75, 0.75, 1.0],
+            boundary_width=2,
+            start_stage=1)),
+    mask_iou_head=dict(
+        type='MaskIoUHead',
+        num_convs=2,
+        num_fcs=1,
+        roi_feat_size=14,
+        in_channels=256,
+        conv_out_channels=256,
+        fc_out_channels=1024,
+        num_classes=80,
+        score_use_sigmoid=True,
+        norm_cfg=dict(type='LN2d'),
+        loss_iou=dict(type='MSELoss', loss_weight=0.5 * num_dec_layer * lambda_2)),
     query_head=dict(
         type='CoDINOHead',
         num_query=1500,
@@ -146,8 +189,8 @@ model = dict(
             reg_decoded_bbox=True,
             norm_cfg=dict(type='GN', num_groups=32),
             loss_cls=dict(
-                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0*num_dec_layer*lambda_2),
-            loss_bbox=dict(type='GIoULoss', loss_weight=10.0*num_dec_layer*lambda_2)))],
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0 * num_dec_layer * lambda_2),
+            loss_bbox=dict(type='GIoULoss', loss_weight=10.0 * num_dec_layer * lambda_2)))],
     bbox_head=[dict(
         type='CoATSSHead',
         num_classes=80,
@@ -169,10 +212,10 @@ model = dict(
             use_sigmoid=True,
             gamma=2.0,
             alpha=0.25,
-            loss_weight=1.0*num_dec_layer*lambda_2),
-        loss_bbox=dict(type='GIoULoss', loss_weight=2.0*num_dec_layer*lambda_2),
+            loss_weight=1.0 * num_dec_layer * lambda_2),
+        loss_bbox=dict(type='GIoULoss', loss_weight=2.0 * num_dec_layer * lambda_2),
         loss_centerness=dict(
-            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0*num_dec_layer*lambda_2)),],
+            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0 * num_dec_layer * lambda_2)),],
     # model training and testing settings
     train_cfg=[
         dict(
@@ -181,6 +224,24 @@ model = dict(
                 cls_cost=dict(type='FocalLossCost', weight=2.0),
                 reg_cost=dict(type='BBoxL1Cost', weight=5.0, box_format='xywh'),
                 iou_cost=dict(type='IoUCost', iou_mode='giou', weight=2.0))),
+        dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.5,
+                neg_iou_thr=0.5,
+                min_pos_iou=0.5,
+                match_low_quality=False,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=512,
+                pos_fraction=0.25,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=True),
+            mask_thr_binary=0.5,
+            mask_size=28,
+            pos_weight=-1,
+            debug=False),                
         dict(
             rpn=dict(
                 assigner=dict(
@@ -228,7 +289,13 @@ model = dict(
     test_cfg=[
         dict(
             max_per_img=1000,
-            nms=dict(type='soft_nms', iou_threshold=0.8)),
+            nms=dict(type='soft_nms', iou_threshold=0.8),
+            mask_thr_binary=0.5),
+        dict(
+            score_thr=0.0,
+            nms=dict(type='nms', iou_threshold=0.5),
+            mask_thr_binary=0.5,
+            max_per_img=100),
         dict(
             rpn=dict(
                 nms_pre=8000,
@@ -257,7 +324,7 @@ img_norm_cfg = dict(
 # from the default setting in mmdet.
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations', with_bbox=True),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(
         type='AutoAugment',
@@ -305,7 +372,7 @@ train_pipeline = [
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
     dict(type='DefaultFormatBundle'),
-    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels'])
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
 ]
 
 test_pipeline = [
@@ -359,4 +426,12 @@ optimizer = dict(
     weight_decay=0.05,
     # custom_keys of sampling_offsets and reference_points in DeformDETR
     paramwise_cfg=dict(custom_keys={'backbone': dict(lr_mult=0.1)}))
+
+custom_hooks = [
+    dict(
+        type='ExpMomentumEMAHook',
+        momentum=0.0001,
+        priority=49),]
+
+evaluation = dict(metric=['bbox', 'segm'])
 
