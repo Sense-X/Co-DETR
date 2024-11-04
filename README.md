@@ -43,8 +43,9 @@ In this paper, we present a novel collaborative hybrid assignments training sche
 | Model  | Backbone | Aug | Dataset | box AP (val) | mask AP (val) | box AP (test) | mask AP (test) | Config | Download |
 | ------ | -------- | --- | ------- | ------------ | ------------- | ------ | ------------- | ------ | ----- |
 | Co-DINO | Swin-L | DETR | COCO | 64.1 | - | - | - | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_swin_large_16e_o365tococo.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
-| Co-DINO | ViT-L | DETR | COCO | 65.9 | - | 66.0 | - | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py) | [model](https://huggingface.co/zongzhuofan) |
 | Co-DINO | Swin-L | LSJ | LVIS | 64.5 | - | - | - | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino/co_dino_5scale_lsj_swin_large_16e_o365tolvis.py) | [model](https://drive.google.com/drive/folders/1nAXOkzqrEgz-YnXxIEs4d5j9li_kmrnv?usp=sharing) |
+| Co-DINO | ViT-L | DETR | Objects365 | - | - | - | - | config | [model](https://huggingface.co/zongzhuofan) |
+| Co-DINO | ViT-L | DETR | COCO | 65.9 | - | 66.0 | - | [config](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py) | [model](https://huggingface.co/zongzhuofan) |
 | Co-DINO | ViT-L | LSJ | LVIS | 68.0 | - | - | - | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino_vit/co_dino_5scale_lsj_vit_large_lvis.py) | [model](https://huggingface.co/zongzhuofan) |
 | Co-DINO-Inst | ViT-L | LSJ | LVIS | 67.3 | 60.7 | - | - | [config (test)](https://github.com/Sense-X/Co-DETR/blob/main/projects/configs/co_dino_vit/co_dino_5scale_lsj_vit_large_lvis_instance.py) | [model](https://huggingface.co/zongzhuofan) |
 
