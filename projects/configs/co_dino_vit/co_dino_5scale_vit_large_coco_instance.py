@@ -423,9 +423,10 @@ optimizer_config = dict(grad_clip=dict(max_norm=0.1, norm_type=2))
 optimizer = dict(
     type='AdamW',
     lr=5e-5,
-    weight_decay=0.05,
-    # custom_keys of sampling_offsets and reference_points in DeformDETR
-    paramwise_cfg=dict(custom_keys={'backbone': dict(lr_mult=0.1)}))
+    weight_decay=0.01,
+    constructor='LayerDecayOptimizerConstructor',
+    paramwise_cfg=dict(
+        num_layers=24, layer_decay_rate=0.8))
 
 custom_hooks = [
     dict(

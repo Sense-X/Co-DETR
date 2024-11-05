@@ -1,10 +1,10 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import json
+import warnings
 
 from mmcv.runner import DefaultOptimizerConstructor, get_dist_info
-
+from mmcv.runner.optimizer.builder import OPTIMIZER_BUILDERS, OPTIMIZERS
 from mmdet.utils import get_root_logger
-from .builder import OPTIMIZER_BUILDERS
 
 
 def get_layer_id_for_convnext(var_name, max_layer_id):
@@ -75,6 +75,29 @@ def get_stage_id_for_convnext(var_name, max_stage_id):
         return max_stage_id - 1
 
 
+def get_layer_id_for_vit(var_name, max_layer_id):
+    """Get the layer id to set the different learning rates.
+
+    Args:
+        var_name (str): The key of the model.
+        num_max_layer (int): Maximum number of backbone layers.
+
+    Returns:
+        int: Returns the layer id of the key.
+    """
+
+    if var_name in ('backbone.cls_token', 'backbone.mask_token',
+                    'backbone.pos_embed'):
+        return 0
+    elif var_name.startswith('backbone.patch_embed'):
+        return 0
+    elif var_name.startswith('backbone.blocks'):
+        layer_id = int(var_name.split('.')[2])
+        return layer_id + 1
+    else:
+        return max_layer_id - 1
+    
+
 @OPTIMIZER_BUILDERS.register_module()
 class LearningRateDecayOptimizerConstructor(DefaultOptimizerConstructor):
     # Different learning rates are set for different layers of backbone.
@@ -105,7 +128,7 @@ class LearningRateDecayOptimizerConstructor(DefaultOptimizerConstructor):
             if not param.requires_grad:
                 continue  # frozen weights
             if len(param.shape) == 1 or name.endswith('.bias') or name in (
-                    'pos_embed', 'cls_token'):
+                    'pos_embed', 'cls_token') or 'relative_position_bias_table' in name or 'rel_pos' in name:
                 group_name = 'no_decay'
                 this_weight_decay = 0.
             else:
@@ -116,6 +139,10 @@ class LearningRateDecayOptimizerConstructor(DefaultOptimizerConstructor):
                     layer_id = get_layer_id_for_convnext(
                         name, self.paramwise_cfg.get('num_layers'))
                     logger.info(f'set param {name} as id {layer_id}')
+                elif 'BEiT' in module.backbone.__class__.__name__ or \
+                     'ViT' in module.backbone.__class__.__name__:
+                    layer_id = get_layer_id_for_vit(name, num_layers)
+                    logger.info(f'set param {name} as id {layer_id}')                    
                 else:
                     raise NotImplementedError()
             elif decay_type == 'stage_wise':
@@ -152,3 +179,26 @@ class LearningRateDecayOptimizerConstructor(DefaultOptimizerConstructor):
                 }
             logger.info(f'Param groups = {json.dumps(to_display, indent=2)}')
         params.extend(parameter_groups.values())
+
+
+@OPTIMIZER_BUILDERS.register_module()
+class LayerDecayOptimizerConstructor(LearningRateDecayOptimizerConstructor):
+    """Different learning rates are set for different layers of backbone.
+
+    Note: Currently, this optimizer constructor is built for BEiT,
+    and it will be deprecated.
+    Please use ``LearningRateDecayOptimizerConstructor`` instead.
+    """
+
+    def __init__(self, optimizer_cfg, paramwise_cfg):
+        warnings.warn('DeprecationWarning: Original '
+                      'LayerDecayOptimizerConstructor of BEiT '
+                      'will be deprecated. Please use '
+                      'LearningRateDecayOptimizerConstructor instead, '
+                      'and set decay_type = layer_wise in paramwise_cfg.')
+        paramwise_cfg.update({'decay_type': 'layer_wise'})
+        warnings.warn('DeprecationWarning: Layer_decay_rate will '
+                      'be deleted, please use decay_rate instead.')
+        paramwise_cfg['decay_rate'] = paramwise_cfg.pop('layer_decay_rate')
+        super(LayerDecayOptimizerConstructor,
+              self).__init__(optimizer_cfg, paramwise_cfg)
