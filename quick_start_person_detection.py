@@ -14,9 +14,11 @@ def main():
     # 1. 设置输入视频路径
     VIDEO_PATH = 'demo/demo.mp4'  # 修改为你的视频路径
 
-    # 2. 设置模型路径（从Hugging Face下载后的路径）
-    CONFIG_FILE = 'checkpoints/co_dino_5scale_vit_large_coco.py'
-    CHECKPOINT_FILE = 'checkpoints/co_dino_5scale_vit_large_coco.pth'
+    # 2. 设置模型路径
+    # 配置文件: 使用本地项目配置
+    CONFIG_FILE = 'projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py'
+    # 权重文件: 从Hugging Face下载的pytorch_model.pth
+    CHECKPOINT_FILE = 'checkpoints/pytorch_model.pth'
 
     # 3. 设置输出视频路径
     OUTPUT_VIDEO = 'output_person_detection.mp4'
@@ -118,13 +120,14 @@ if __name__ == '__main__':
     使用步骤：
     1. 从Hugging Face下载模型：
        huggingface-cli download zongzhuofan/co-detr-vit-large-coco \\
-           co_dino_5scale_vit_large_coco.pth \\
-           co_dino_5scale_vit_large_coco.py \\
+           pytorch_model.pth \\
            --local-dir ./checkpoints
 
     2. 修改上面的配置区域（VIDEO_PATH等）
 
     3. 运行脚本：
        python quick_start_person_detection.py
+
+    注意：配置文件使用项目自带的 projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py
     """
     main()

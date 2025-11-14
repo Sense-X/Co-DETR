@@ -58,11 +58,13 @@ git lfs install
 # 克隆模型仓库
 git clone https://huggingface.co/zongzhuofan/co-detr-vit-large-coco
 
-# 或使用huggingface-cli下载
+# 或使用huggingface-cli下载（推荐）
 huggingface-cli download zongzhuofan/co-detr-vit-large-coco \
-    co_dino_5scale_vit_large_coco.pth \
-    co_dino_5scale_vit_large_coco.py \
+    pytorch_model.pth \
     --local-dir ./checkpoints
+
+# 注意：配置文件使用项目自带的
+# projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py
 ```
 
 ### 方法3: 使用本地配置文件
@@ -121,8 +123,8 @@ import cv2
 import mmcv
 
 # 初始化模型
-config_file = 'checkpoints/co_dino_5scale_vit_large_coco.py'
-checkpoint_file = 'checkpoints/co_dino_5scale_vit_large_coco.pth'
+config_file = 'projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py'
+checkpoint_file = 'checkpoints/pytorch_model.pth'
 model = init_detector(config_file, checkpoint_file, device='cuda:0')
 
 # 读取视频

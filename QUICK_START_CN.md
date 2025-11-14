@@ -30,18 +30,19 @@ pip install huggingface-hub
 ### 第一步: 下载模型
 
 ```bash
-# 使用Hugging Face CLI下载模型
+# 使用Hugging Face CLI下载模型权重
 huggingface-cli download zongzhuofan/co-detr-vit-large-coco \
-    co_dino_5scale_vit_large_coco.pth \
-    co_dino_5scale_vit_large_coco.py \
+    pytorch_model.pth \
     --local-dir ./checkpoints
 ```
 
 **下载后的文件结构：**
 ```
 checkpoints/
-├── co_dino_5scale_vit_large_coco.pth  (~2.2GB)
-└── co_dino_5scale_vit_large_coco.py
+└── pytorch_model.pth  (~2.2GB)
+
+# 配置文件使用项目自带的：
+projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py
 ```
 
 ### 第二步: 准备视频
@@ -134,8 +135,8 @@ import mmcv
 
 # 1. 加载模型
 model = init_detector(
-    'checkpoints/co_dino_5scale_vit_large_coco.py',
-    'checkpoints/co_dino_5scale_vit_large_coco.pth',
+    'projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py',  # 配置文件
+    'checkpoints/pytorch_model.pth',  # 权重文件
     device='cuda:0'
 )
 
@@ -167,8 +168,8 @@ SCORE_THRESHOLD = 0.5
 
 # 初始化模型
 model = init_detector(
-    'checkpoints/co_dino_5scale_vit_large_coco.py',
-    'checkpoints/co_dino_5scale_vit_large_coco.pth',
+    'projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py',  # 配置文件
+    'checkpoints/pytorch_model.pth',  # 权重文件
     device='cuda:0'
 )
 

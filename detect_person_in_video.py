@@ -20,21 +20,25 @@ def download_model_from_huggingface(save_dir='./checkpoints'):
 
     model_repo = "zongzhuofan/co-detr-vit-large-coco"
 
-    # 下载模型权重
-    checkpoint_path = os.path.join(save_dir, "co_dino_5scale_vit_large_coco.pth")
-    config_path = os.path.join(save_dir, "co_dino_5scale_vit_large_coco.py")
+    # 下载模型权重 (HuggingFace上的文件名是pytorch_model.pth)
+    checkpoint_path = os.path.join(save_dir, "pytorch_model.pth")
+
+    # 使用本地配置文件
+    config_path = "projects/configs/co_dino_vit/co_dino_5scale_vit_large_coco.py"
 
     if not os.path.exists(checkpoint_path):
         print(f"正在从Hugging Face下载模型权重...")
-        cmd = f"huggingface-cli download {model_repo} co_dino_5scale_vit_large_coco.pth --local-dir {save_dir}"
+        cmd = f"huggingface-cli download {model_repo} pytorch_model.pth --local-dir {save_dir}"
         subprocess.run(cmd, shell=True, check=True)
         print(f"模型权重已下载到: {checkpoint_path}")
+    else:
+        print(f"模型权重已存在: {checkpoint_path}")
 
     if not os.path.exists(config_path):
-        print(f"正在下载配置文件...")
-        cmd = f"huggingface-cli download {model_repo} co_dino_5scale_vit_large_coco.py --local-dir {save_dir}"
-        subprocess.run(cmd, shell=True, check=True)
-        print(f"配置文件已下载到: {config_path}")
+        print(f"警告: 配置文件不存在: {config_path}")
+        print(f"请确保在Co-DETR项目根目录下运行此脚本")
+    else:
+        print(f"使用配置文件: {config_path}")
 
     return config_path, checkpoint_path
 
